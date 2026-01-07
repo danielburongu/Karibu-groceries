@@ -56,8 +56,7 @@ produceSelect.addEventListener("change", function () {
 
   selectedProduce = stock[index];
 
-  availableStockText.textContent =
-    `Available stock: ${selectedProduce.tonnage} KG`;
+  availableStockText.textContent = `Available stock: ${selectedProduce.tonnage} KG`;
 
   priceInput.value = selectedProduce.sellingPrice;
   branchInput.value = selectedProduce.branch;
@@ -76,12 +75,8 @@ document
       return;
     }
 
-    const tonnageSold = Number(
-      document.getElementById("tonnageSold").value
-    );
-    const amountPaid = Number(
-      document.getElementById("amountPaid").value
-    );
+    const tonnageSold = Number(document.getElementById("tonnageSold").value);
+    const amountPaid = Number(document.getElementById("amountPaid").value);
     const buyerName = document.getElementById("buyerName").value.trim();
 
     // ===============================

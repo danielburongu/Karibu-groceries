@@ -30,7 +30,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    usersList.innerHTML = users.map((u, index) => `
+    usersList.innerHTML = users
+      .map(
+        (u, index) => `
       <div class="user-card">
         <div class="d-flex justify-content-between align-items-start">
           <div>
@@ -52,7 +54,9 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
       </div>
-    `).join("");
+    `,
+      )
+      .join("");
   }
 
   // Add or Edit User
@@ -88,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Edit User
-  window.editUser = function(index) {
+  window.editUser = function (index) {
     let users = JSON.parse(localStorage.getItem("kglStaff") || "[]");
     const u = users[index];
 
@@ -102,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // Delete User
-  window.deleteUser = function(index) {
+  window.deleteUser = function (index) {
     if (!confirm("Are you sure you want to delete this user?")) return;
 
     let users = JSON.parse(localStorage.getItem("kglStaff") || "[]");

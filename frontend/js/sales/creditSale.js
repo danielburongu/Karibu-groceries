@@ -1,4 +1,4 @@
-// creditSale.js - Enhanced Credit Sale Recording
+// creditSale.js - Credit Sale Recording
 
 const user = JSON.parse(localStorage.getItem("kglUser"));
 
@@ -36,28 +36,25 @@ salesAgentInput.value = user.username || "Unknown Agent";
 
 let stock = JSON.parse(localStorage.getItem("kglStock")) || [];
 let selectedProduce = null;
-const PRICE_PER_KG = 3500; // Will Adjust this based on actual pricing logic (could be per produce later)
+const PRICE_PER_KG = 3500;
 
-// Populate produce dropdown
+// ===============================
+// POPULATE PRODUCE DROPDOWN
+// ===============================
 function populateProduceOptions() {
-  produceSelect.innerHTML = '<option value="" disabled selected>Select produce...</option>';
+  produceSelect.innerHTML =
+    '<option value="" disabled selected>Select produce...</option>';
 
-  if (stock.length === 0) {
-    produceSelect.innerHTML += '<option disabled>No stock available</option>';
-    return;
-  }
-
-  const availableItems = stock.filter(item => item.tonnage > 0);
+  const availableItems = stock.filter((item) => item.tonnage > 0);
 
   if (availableItems.length === 0) {
-    produceSelect.innerHTML += '<option disabled>All stock depleted</option>';
+    produceSelect.innerHTML += "<option disabled>No stock available</option>";
     return;
   }
 
-  availableItems.forEach((item, index) => {
-    const originalIndex = stock.indexOf(item);
+  availableItems.forEach((item) => {
     const option = document.createElement("option");
-    option.value = originalIndex;
+    option.value = stock.indexOf(item);
     option.textContent = `${item.produceName} - ${item.produceType} (${item.tonnage} KG @ ${item.branch})`;
     produceSelect.appendChild(option);
   });
@@ -66,16 +63,13 @@ function populateProduceOptions() {
 populateProduceOptions();
 
 // ===============================
-// PRODUCE SELECTION HANDLER
+// PRODUCE SELECTION
 // ===============================
 produceSelect.addEventListener("change", function () {
-  const index = parseInt(this.value);
-
-  // Reset fields
-  removeError(this.parentElement);
   clearCalculatedFields();
 
-  if (isNaN(index)) {
+  const index = Number(this.value);
+  if (Number.isNaN(index)) {
     selectedProduce = null;
     return;
   }
@@ -86,7 +80,6 @@ produceSelect.addEventListener("change", function () {
   produceTypeInput.value = selectedProduce.produceType;
   availableStockInput.value = `${selectedProduce.tonnage} KG`;
 
-  // Trigger tonnage recalculation if already entered
   if (tonnageInput.value) {
     calculateAmountDue();
     checkStockAvailability();
@@ -94,20 +87,19 @@ produceSelect.addEventListener("change", function () {
 });
 
 // ===============================
-// REAL-TIME CALCULATIONS & VALIDATION
+// REAL-TIME CALCULATIONS
 // ===============================
 tonnageInput.addEventListener("input", function () {
-  removeError(this.parentElement);
   stockWarning.style.display = "none";
+  removeError(this.parentElement);
 
   if (!selectedProduce) {
     this.value = "";
     return;
   }
 
-  const tonnage = parseFloat(this.value);
-
-  if (isNaN(tonnage) || tonnage <= 0) {
+  const tonnage = Number(this.value);
+  if (Number.isNaN(tonnage) || tonnage <= 0) {
     amountDueInput.value = "";
     return;
   }
@@ -117,15 +109,15 @@ tonnageInput.addEventListener("input", function () {
 });
 
 function calculateAmountDue() {
-  const tonnage = parseFloat(tonnageInput.value);
+  const tonnage = Number(tonnageInput.value);
   if (tonnage > 0 && selectedProduce) {
-    const total = tonnage * PRICE_PER_KG;
-    amountDueInput.value = total.toLocaleString("en-UG") + " UGX";
+    amountDueInput.value =
+      (tonnage * PRICE_PER_KG).toLocaleString("en-UG") + " UGX";
   }
 }
 
 function checkStockAvailability() {
-  const tonnage = parseFloat(tonnageInput.value);
+  const tonnage = Number(tonnageInput.value);
   if (tonnage > selectedProduce.tonnage) {
     stockWarning.style.display = "flex";
     addError(tonnageInput.parentElement);
@@ -135,13 +127,15 @@ function checkStockAvailability() {
   }
 }
 
-// Helper functions for error states
-function addError(formGroup) {
-  formGroup.classList.add("has-error");
+// ===============================
+// FORM UTILITIES
+// ===============================
+function addError(group) {
+  group.classList.add("has-error");
 }
 
-function removeError(formGroup) {
-  formGroup.classList.remove("has-error");
+function removeError(group) {
+  group.classList.remove("has-error");
 }
 
 function clearCalculatedFields() {
@@ -158,56 +152,54 @@ function clearCalculatedFields() {
 // ===============================
 form.addEventListener("submit", function (e) {
   e.preventDefault();
-
-  // Clears previous success
   successMessage.style.display = "none";
 
-  // Required field check
   const requiredFields = [
-    { field: document.getElementById("buyerName"), name: "Buyer Name" },
-    { field: document.getElementById("nin"), name: "National ID (NIN)" },
-    { field: document.getElementById("location"), name: "Location" },
-    { field: document.getElementById("contact"), name: "Phone Contact" },
-    { field: produceSelect, name: "Produce" },
-    { field: tonnageInput, name: "Tonnage" },
-    { field: dueDateInput, name: "Due Date" }
+    document.getElementById("buyerName"),
+    document.getElementById("nin"),
+    document.getElementById("location"),
+    document.getElementById("contact"),
+    produceSelect,
+    tonnageInput,
+    dueDateInput,
   ];
 
   let hasError = false;
 
-  requiredFields.forEach(item => {
-    if (!item.field.value.trim()) {
-      addError(item.field.parentElement);
+  requiredFields.forEach((field) => {
+    if (!field.value.trim()) {
+      addError(field.parentElement);
       hasError = true;
     } else {
-      removeError(item.field.parentElement);
+      removeError(field.parentElement);
     }
   });
 
-  if (!selectedProduce) {
-    alert("Please select a produce from the list.");
-    addError(produceSelect.parentElement);
+  if (hasError) {
+    alert("Please fill in all required fields.");
     return;
   }
 
-  const tonnage = parseFloat(tonnageInput.value);
+  if (!selectedProduce) {
+    alert("Please select a produce.");
+    return;
+  }
+
+  const tonnage = Number(tonnageInput.value);
   if (tonnage > selectedProduce.tonnage) {
-    alert("Tonnage cannot exceed available stock!");
-    addError(tonnageInput.parentElement);
+    alert("Tonnage cannot exceed available stock.");
     return;
   }
 
   const contact = document.getElementById("contact").value.trim();
-  if (!/^07[0-9]{8}$/.test(contact)) {
-    alert("Please enter a valid Ugandan mobile number (e.g., 077XXXXXXX)");
-    addError(document.getElementById("contact").parentElement);
+  if (!/^07\d{8}$/.test(contact)) {
+    alert("Enter a valid Ugandan phone number.");
     return;
   }
 
   const nin = document.getElementById("nin").value.trim().toUpperCase();
   if (!/^[A-Z]{2}[A-Z0-9]{12,14}$/.test(nin)) {
     alert("Invalid National ID format.");
-    addError(document.getElementById("nin").parentElement);
     return;
   }
 
@@ -227,36 +219,32 @@ form.addEventListener("submit", function (e) {
     amountDue: tonnage * PRICE_PER_KG,
     dueDate: dueDateInput.value,
     salesAgent: user.username,
-    dispatchDate: new Date().toLocaleDateString("en-GB"),
-    dispatchTime: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
-    recordedAt: new Date().toISOString()
+    recordedAt: new Date().toISOString(),
   };
 
-  // Update stock
   selectedProduce.tonnage -= tonnage;
   localStorage.setItem("kglStock", JSON.stringify(stock));
 
-  // Save sale
-  let creditSales = JSON.parse(localStorage.getItem("kglCreditSales")) || [];
+  const creditSales = JSON.parse(localStorage.getItem("kglCreditSales")) || [];
   creditSales.unshift(creditSale);
   localStorage.setItem("kglCreditSales", JSON.stringify(creditSales));
 
   // ===============================
   // SUCCESS FEEDBACK
   // ===============================
-  savedAmountEl.textContent = creditSale.amountDue.toLocaleString("en-UG") + " UGX";
-  savedDueDateEl.textContent = new Date(creditSale.dueDate).toLocaleDateString("en-GB");
+  savedAmountEl.textContent =
+    creditSale.amountDue.toLocaleString("en-UG") + " UGX";
+  savedDueDateEl.textContent = new Date(creditSale.dueDate).toLocaleDateString(
+    "en-GB",
+  );
+
   successMessage.style.display = "flex";
+  successMessage.scrollIntoView({ behavior: "smooth" });
 
-  // Scroll to success message
-  successMessage.scrollIntoView({ behavior: "smooth", block: "center" });
-
-  // Reset form
   form.reset();
   clearCalculatedFields();
   produceSelect.selectedIndex = 0;
   selectedProduce = null;
 
-  // Refresh produce list (in case stock depleted)
   setTimeout(populateProduceOptions, 300);
 });

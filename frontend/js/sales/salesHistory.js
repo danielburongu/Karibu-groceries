@@ -5,7 +5,10 @@ const user = JSON.parse(localStorage.getItem("kglUser") || "{}");
 // ===============================
 // Role Protection
 // ===============================
-if (!user || (user.role !== "sales" && user.role !== "manager" && user.role !== "director")) {
+if (
+  !user ||
+  (user.role !== "sales" && user.role !== "manager" && user.role !== "director")
+) {
   alert("Access denied. Unauthorized role.");
   window.location.href = "../index.html";
 }
@@ -51,7 +54,7 @@ let allSales = [];
 // Cash Sales
 cashSales.forEach((sale) => {
   allSales.push({
-    dateTime: `${sale.date || ''} ${sale.time || ''}`.trim(),
+    dateTime: `${sale.date || ""} ${sale.time || ""}`.trim(),
     produce: sale.produceName || "Unknown",
     branch: (sale.branch || "unknown").toLowerCase(),
     tonnage: parseFloat(sale.tonnageSold) || 0,
@@ -66,7 +69,7 @@ cashSales.forEach((sale) => {
 // Credit Sales
 creditSales.forEach((sale) => {
   allSales.push({
-    dateTime: `${sale.dispatchDate || ''} ${sale.dispatchTime || ''}`.trim(),
+    dateTime: `${sale.dispatchDate || ""} ${sale.dispatchTime || ""}`.trim(),
     produce: sale.produceName || "Unknown",
     branch: (sale.branch || "unknown").toLowerCase(),
     tonnage: parseFloat(sale.tonnage) || 0,
@@ -102,7 +105,7 @@ displayedSales.sort((a, b) => {
 // ===============================
 function renderTable(sales) {
   // Update record count
-  recordCount.textContent = `${sales.length} record${sales.length !== 1 ? 's' : ''} found`;
+  recordCount.textContent = `${sales.length} record${sales.length !== 1 ? "s" : ""} found`;
 
   if (sales.length === 0) {
     tableBody.innerHTML = "";
@@ -116,7 +119,8 @@ function renderTable(sales) {
   sales.forEach((sale) => {
     const row = document.createElement("tr");
 
-    const branchName = sale.branch.charAt(0).toUpperCase() + sale.branch.slice(1);
+    const branchName =
+      sale.branch.charAt(0).toUpperCase() + sale.branch.slice(1);
 
     row.innerHTML = `
       <td>${sale.dateTime || "—"}</td>
@@ -149,10 +153,11 @@ function applyFilters() {
   const toDate = dateTo.value;
 
   if (searchTerm) {
-    filtered = filtered.filter((sale) =>
-      sale.buyer.toLowerCase().includes(searchTerm) ||
-      sale.produce.toLowerCase().includes(searchTerm) ||
-      sale.agent.toLowerCase().includes(searchTerm)
+    filtered = filtered.filter(
+      (sale) =>
+        sale.buyer.toLowerCase().includes(searchTerm) ||
+        sale.produce.toLowerCase().includes(searchTerm) ||
+        sale.agent.toLowerCase().includes(searchTerm),
     );
   }
 

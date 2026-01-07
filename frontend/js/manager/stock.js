@@ -55,6 +55,6 @@ if (stock.length === 0) {
 if (outOfStockItems.length > 0) {
   alert(
     "Stock Alert:\nThe following items are out of stock:\n- " +
-      outOfStockItems.join("\n- ")
+      outOfStockItems.join("\n- "),
   );
 }

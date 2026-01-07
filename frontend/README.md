@@ -15,6 +15,7 @@
 ---
 
 ## Business Rules Implemented
+
 - Only available stock can be sold
 - Stock quantity reduces after every sale
 - Out-of-stock items trigger manager notification
@@ -25,13 +26,14 @@
 ---
 
 ## How to Run the Frontend
+
 1. Open `index.html` in a browser
 2. Log in using the appropriate role
 3. The system redirects to the correct dashboard
 
 ---
 
-# Procurement Form Debugging  Assignment Task
+# Procurement Form Debugging Assignment Task
 
 Debug the **Karibu Groceries procurement form** by:
 

@@ -1,0 +1,28 @@
+{
+  "name": "karibu-groceries",
+  "version": "1.0.0",
+  "description": "Karibu Groceries LTD (KGL) is a wholesale cereal distributor operating two branches.\r The business previously relied on manual black book records, which led to inefficiencies,\r errors, and limited visibility.",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier \"frontend/**/*.{js,html,css,json,md}\" --write",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "frontend/**/*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "frontend/**/*.{html,css,json,md}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "eslint": "^9.39.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4"
+  }
+}

@@ -12,7 +12,10 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
 
     // Get form values
-    const username = document.getElementById("username").value.trim().toLowerCase();
+    const username = document
+      .getElementById("username")
+      .value.trim()
+      .toLowerCase();
     const role = document.getElementById("role").value;
     const branch = document.getElementById("branch").value;
 
@@ -36,9 +39,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const userSession = {
       username: username,
       displayName: username.charAt(0).toUpperCase() + username.slice(1), // Nice display
-      role: role,           // "director", "manager", "sales"
-      branch: branch,       // "maganjo" or "matugga"
-      loginTime: new Date().toISOString()
+      role: role, // "director", "manager", "sales"
+      branch: branch, // "maganjo" or "matugga"
+      loginTime: new Date().toISOString(),
     };
 
     // Save session

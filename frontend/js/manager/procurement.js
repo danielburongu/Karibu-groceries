@@ -59,7 +59,9 @@ form.addEventListener("submit", function (e) {
 
     // FIX #3: Produce type must contain alphabets only and be at least 2 characters
     if (!/^[a-zA-Z ]{2,}$/.test(produceType)) {
-      alert("Produce type must contain letters only and be at least 2 characters.");
+      alert(
+        "Produce type must contain letters only and be at least 2 characters.",
+      );
       return;
     }
 
@@ -113,9 +115,7 @@ form.addEventListener("submit", function (e) {
     // LOGICAL FIX:
     // Merge stock if same produce exists in same branch
     const existingStock = stock.find(
-      item =>
-        item.produceName === produceName &&
-        item.branch === branch
+      (item) => item.produceName === produceName && item.branch === branch,
     );
 
     if (existingStock) {
@@ -132,7 +132,7 @@ form.addEventListener("submit", function (e) {
         dealerName,
         dealerContact,
         branch,
-        sellingPrice
+        sellingPrice,
       });
     }
 
@@ -141,7 +141,6 @@ form.addEventListener("submit", function (e) {
 
     alert("Produce procurement recorded successfully.");
     form.reset();
-
   } catch (error) {
     // ------------------------------------------------
     // RUNTIME ERROR HANDLING #2:
