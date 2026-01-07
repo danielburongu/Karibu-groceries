@@ -1,0 +1,68 @@
+/* custom-bootstrap.css - Your brand overrides */
+
+:root {
+  --bs-primary: #248b0a;
+  --bs-primary-rgb: 36, 139, 10;
+  --bs-success: #248b0a;
+  --bs-success-rgb: 36, 139, 10;
+  --bs-link-color: #248b0a;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: #248b0a;
+  border-color: #248b0a;
+}
+.btn-primary:hover {
+  background-color: #1e7008;
+  border-color: #1e7008;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(36, 139, 10, 0.3);
+}
+
+/* Form Controls Focus */
+.form-control:focus,
+.form-select:focus {
+  border-color: #248b0a;
+  box-shadow: 0 0 0 0.25rem rgba(36, 139, 10, 0.25);
+}
+
+/* Cards */
+.card {
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
+.card:hover {
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+/* Header */
+.dashboard-header {
+  background-color: #248b0a !important;
+}
+
+/* Tables */
+.table thead th {
+  background-color: #248b0a;
+}
+
+/* Alerts */
+.alert-success {
+  background-color: #e8f5e9;
+  border-left: 5px solid #248b0a;
+  color: #248b0a;
+}
+
+/* Amount highlight */
+.highlight-amount {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #e67e22;
+  background: linear-gradient(to bottom, #fff8f0, #fff0e6);
+  border: 3px dashed #f39c12;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+}

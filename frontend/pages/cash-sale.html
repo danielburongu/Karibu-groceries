@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cash Sales | Karibu Groceries</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-green: #248b0a;
+      --light-bg: #f4f6f8;
+    }
+
+    body {
+      background-color: var(--light-bg);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    /* Header */
+    .dashboard-header {
+      background-color: var(--primary-green);
+      color: white;
+      padding: 2rem 0;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .page-subtitle {
+      font-size: 1rem;
+      opacity: 0.95;
+      margin-top: 0.4rem;
+    }
+
+    /* Clean Text-Only Action Links */
+    .action-link {
+      color: white;
+      text-decoration: none;
+      padding: 0.7rem 1.4rem;
+      border-radius: 0.5rem;
+      background: rgba(255,255,255,0.15);
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+
+    .action-link:hover {
+      background: rgba(255,255,255,0.25);
+      color: white;
+      text-decoration: none;
+    }
+
+    /* Form Card */
+    .form-card {
+      background: white;
+      border-radius: 1.2rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      overflow: hidden;
+    }
+
+    .form-card .card-body {
+      padding: 3rem;
+    }
+
+    /* Section Titles - Text Only */
+    .section-title {
+      color: var(--primary-green);
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 2px solid #e8f5e9;
+    }
+
+    .form-hint {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+      font-style: italic;
+    }
+
+    /* Highlighted Amount */
+    .highlight-amount {
+      background: #f0f8f0;
+      border: 2px solid var(--primary-green);
+      border-radius: 1rem;
+      padding: 1.8rem;
+      text-align: center;
+      margin: 2rem 0;
+    }
+
+    .highlight-amount .form-label {
+      font-weight: 600;
+      color: var(--primary-green);
+      font-size: 1.1rem;
+    }
+
+    .highlight-amount .form-control {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--primary-green);
+      text-align: center;
+      background: transparent;
+      border: none;
+      padding: 0.5rem 0;
+    }
+
+    .highlight-amount .form-control:focus {
+      box-shadow: none;
+    }
+
+    /* Auto Note */
+    .auto-note {
+      background: #f0f8f0;
+      border: 1px dashed #a8d5a8;
+      border-radius: 1rem;
+      padding: 1.2rem;
+      text-align: center;
+      color: var(--primary-green);
+      font-weight: 500;
+      margin: 2rem 0;
+      font-size: 0.95rem;
+    }
+
+    /* Submit Button */
+    .btn-submit {
+      background-color: var(--primary-green);
+      border: none;
+      font-size: 1.1rem;
+      font-weight: 600;
+      padding: 1rem;
+      border-radius: 0.8rem;
+    }
+
+    .btn-submit:hover {
+      background-color: #1e7008;
+    }
+
+    @media (max-width: 768px) {
+      .form-card .card-body {
+        padding: 2rem 1.5rem;
+      }
+
+      .dashboard-header .container {
+        text-align: center;
+      }
+
+      .header-actions {
+        margin-top: 1rem;
+        justify-content: center;
+        gap: 1rem;
+      }
+
+      .highlight-amount .form-control {
+        font-size: 1.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="container d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h2 class="mb-0">Cash Sales</h2>
+        <p class="page-subtitle">Record immediate cash transactions</p>
+      </div>
+      <div class="header-actions d-flex gap-3 flex-wrap">
+        <a href="./credit-sale.html" class="action-link">Credit Sale</a>
+        <a href="./sales-history.html" class="action-link">Sales History</a>
+        <a href="../dashboard.html" class="action-link">Back to Dashboard</a>
+        <a href="./cash-sale.html" class="action-link">Refresh Page</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-9 col-xl-7">
+
+        <div class="card form-card border-0">
+          <div class="card-body">
+
+            <h2 class="text-center text-success mb-5 fw-bold">Record Cash Sale</h2>
+
+            <form id="cashSaleForm" novalidate>
+
+              <!-- Produce Details -->
+              <h4 class="section-title">Produce Details</h4>
+              <p class="form-hint">Select from available stock in your branch.</p>
+
+              <div class="row g-4 mb-5">
+                <div class="col-12">
+                  <div class="form-floating">
+                    <select class="form-select" id="produceSelect" required>
+                      <option value="" disabled selected>Loading available produce...</option>
+                    </select>
+                    <label for="produceSelect">Available Produce</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <input type="text" class="form-control" id="branch" readonly>
+                    <label for="branch">Branch</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <input type="text" class="form-control" id="availableStock" readonly>
+                    <label for="availableStock">Available Stock (KG)</label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sale Details -->
+              <h4 class="section-title">Sale Details</h4>
+              <p class="form-hint">Date and time will be recorded automatically.</p>
+
+              <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <input type="number" class="form-control" id="tonnageSold" min="0.1" step="0.1" required>
+                    <label for="tonnageSold">Tonnage Sold (KG)</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <input type="text" class="form-control" id="price" readonly>
+                    <label for="price">Price per KG (UGX)</label>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="highlight-amount">
+                    <div class="form-floating">
+                      <input type="text" class="form-control" id="amountPaid" readonly>
+                      <label>Total Amount Paid (UGX)</label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-8">
+                  <div class="form-floating">
+                    <input type="text" class="form-control" id="buyerName" required>
+                    <label for="buyerName">Buyer Name</label>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-floating">
+                    <input type="text" class="form-control" id="salesAgent" readonly>
+                    <label for="salesAgent">Sales Agent</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="auto-note">
+                Sale date and time will be recorded automatically upon submission.
+              </div>
+
+              <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-submit btn-lg">
+                  Record Cash Sale
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="../js/auth.js"></script>
+  <script src="../js/sales/cashSale.js"></script>
+</body>
+</html>

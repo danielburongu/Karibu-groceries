@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sales History | Karibu Groceries</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-green: #248b0a;
+      --light-bg: #f4f6f8;
+    }
+
+    body {
+      background-color: var(--light-bg);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    /* Header */
+    .dashboard-header {
+      background-color: var(--primary-green);
+      color: white;
+      padding: 2rem 0;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .page-subtitle {
+      font-size: 1rem;
+      opacity: 0.95;
+      margin-top: 0.4rem;
+    }
+
+    /* Clean Text-Only Action Links */
+    .action-link {
+      color: white;
+      text-decoration: none;
+      padding: 0.7rem 1.4rem;
+      border-radius: 0.5rem;
+      background: rgba(255,255,255,0.15);
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+
+    .action-link:hover {
+      background: rgba(255,255,255,0.25);
+      color: white;
+      text-decoration: none;
+    }
+
+    /* Filters Card */
+    .filters-card {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.8rem;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+
+    /* Table Card */
+    .table-card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      overflow: hidden;
+    }
+
+    .table-header {
+      background: #f8fff8;
+      padding: 1.8rem 2rem;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .table-header h3 {
+      color: var(--primary-green);
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .record-count {
+      color: #666;
+      font-size: 1rem;
+    }
+
+    /* Table Styling */
+    .sales-table thead th {
+      background-color: var(--primary-green);
+      color: white;
+      font-weight: 600;
+      padding: 1rem;
+      font-size: 0.95rem;
+      text-align: left;
+    }
+
+    .sales-table tbody td {
+      padding: 1rem;
+      vertical-align: middle;
+      font-size: 0.95rem;
+    }
+
+    .sales-table tbody tr:hover {
+      background-color: #f8fff8;
+    }
+
+    .sales-table .amount {
+      font-weight: 600;
+      color: var(--primary-green);
+      text-align: right;
+    }
+
+    /* Type Badges - Exact Match to JS */
+    .type.cash {
+      display: inline-block;
+      background-color: #e8f5e9;
+      color: var(--primary-green);
+      padding: 0.4rem 0.9rem;
+      border-radius: 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .type.credit {
+      display: inline-block;
+      background-color: #fff3e0;
+      color: #e67e22;
+      padding: 0.4rem 0.9rem;
+      border-radius: 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 4.5rem 2rem;
+      color: #999;
+    }
+
+    .empty-state h4 {
+      margin: 0 0 0.8rem;
+      font-weight: 600;
+      font-size: 1.3rem;
+    }
+
+    .empty-state p {
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    /* Pagination - Text Only */
+    .pagination .page-link {
+      color: var(--primary-green);
+      border-color: var(--primary-green);
+      padding: 0.7rem 1.3rem;
+      font-weight: 600;
+      border-radius: 0.5rem;
+    }
+
+    .pagination .page-item.active .page-link {
+      background-color: var(--primary-green);
+      border-color: var(--primary-green);
+    }
+
+    .pagination .page-item.disabled .page-link {
+      color: #999;
+      background-color: #f8f9fa;
+      border-color: #ddd;
+    }
+
+    @media (max-width: 992px) {
+      .filters-card .row > div {
+        margin-bottom: 1rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-header .container {
+        text-align: center;
+      }
+
+      .header-actions {
+        margin-top: 1rem;
+        justify-content: center;
+        gap: 1rem;
+      }
+
+      .table-header {
+        text-align: center;
+        flex-direction: column;
+      }
+
+      .sales-table thead th,
+      .sales-table tbody td {
+        padding: 0.8rem 0.6rem;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="container d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h2 class="mb-0">Sales History</h2>
+        <p class="page-subtitle">View all recorded cash and credit sales</p>
+      </div>
+      <div class="header-actions d-flex gap-3 flex-wrap">
+        <a href="./cash-sale.html" class="action-link">Cash Sale</a>
+        <a href="./credit-sale.html" class="action-link">Credit Sale</a>
+        <a href="../dashboard.html" class="action-link">Back to Dashboard</a>
+        <a href="./sales-history.html" class="action-link">Refresh</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container py-5">
+
+    <!-- Filters -->
+    <div class="filters-card">
+      <div class="row g-3 align-items-end">
+        <div class="col-lg-4">
+          <input type="text" class="form-control" id="searchInput" placeholder="Search by buyer, produce, or agent">
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" id="branchFilter">
+            <option value="">All Branches</option>
+            <option value="maganjo">Maganjo</option>
+            <option value="matugga">Matugga</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" id="typeFilter">
+            <option value="">All Types</option>
+            <option value="cash">Cash Sales</option>
+            <option value="credit">Credit Sales</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <input type="date" class="form-control" id="dateFrom">
+        </div>
+        <div class="col-md-2">
+          <input type="date" class="form-control" id="dateTo">
+        </div>
+      </div>
+    </div>
+
+    <!-- Sales Table -->
+    <div class="card table-card border-0">
+      <div class="table-header">
+        <h3>Recorded Sales</h3>
+        <span class="record-count" id="recordCount">Loading records...</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover sales-table mb-0 align-middle">
+          <thead>
+            <tr>
+              <th>Date & Time</th>
+              <th>Produce</th>
+              <th>Branch</th>
+              <th>Tonnage (KG)</th>
+              <th>Amount (UGX)</th>
+              <th>Buyer</th>
+              <th>Agent</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody id="salesTableBody">
+            <!-- Dynamically populated by salesHistory.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state d-none" id="emptyState">
+        <h4 class="text-muted">No sales records found</h4>
+        <p class="text-muted">Try adjusting the filters or record a new sale.</p>
+      </div>
+
+      <!-- Pagination (Simple - Can be expanded later) -->
+      <nav class="p-4 border-top d-flex justify-content-center align-items-center gap-4" aria-label="Sales pagination" id="pagination">
+        <button class="btn btn-outline-success" id="prevPage" disabled>Previous</button>
+        <span id="pageInfo" class="fw-medium">Page 1 of 1</span>
+        <button class="btn btn-outline-success" id="nextPage" disabled>Next</button>
+      </nav>
+    </div>
+
+  </main>
+
+  <!-- Scripts -->
+  <script src="../js/auth.js"></script>
+  <script src="../js/sales/salesHistory.js"></script>
+</body>
+</html>

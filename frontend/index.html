@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Karibu Groceries | Login</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Custom Theme Overrides -->
+  <link rel="stylesheet" href="./css/custom-bootstrap.css" />
+
+  <style>
+    body {
+      min-height: 100vh;
+      background-image: url("./assets/images/groceries.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0.5));
+      z-index: -1;
+    }
+
+    .login-card {
+      max-width: 960px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .login-visual {
+      background: linear-gradient(135deg, #248b0a 0%, #1e7008 100%);
+      color: white;
+      padding: 70px 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .login-visual .leaf-icon {
+      font-size: 5.5rem;
+      margin-bottom: 1.5rem;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    }
+
+    .login-visual h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .login-visual p {
+      font-size: 1.1rem;
+      opacity: 0.95;
+      max-width: 300px;
+    }
+
+    .login-form {
+      padding: 70px 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .login-form h2 {
+      text-align: center;
+      color: #248b0a;
+      font-weight: 700;
+      margin-bottom: 2.5rem;
+      font-size: 1.9rem;
+    }
+
+    .btn-login {
+      background-color: #248b0a;
+      border: none;
+      padding: 1rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 0.8rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(36, 139, 10, 0.3);
+    }
+
+    .btn-login:hover {
+      background-color: #1e7008;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px rgba(36, 139, 10, 0.4);
+    }
+
+    .login-footer {
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+      margin-top: 2.5rem;
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .login-card {
+        flex-direction: column;
+      }
+
+      .login-visual {
+        padding: 50px 30px;
+      }
+
+      .login-visual .leaf-icon {
+        font-size: 4.5rem;
+      }
+
+      .login-visual h1 {
+        font-size: 1.9rem;
+      }
+
+      .login-form {
+        padding: 50px 40px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .login-visual {
+        padding: 40px 20px;
+      }
+
+      .login-form {
+        padding: 40px 30px;
+      }
+
+      .btn-login {
+        padding: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12">
+
+        <div class="login-card d-flex flex-md-row flex-column">
+
+          <!-- Brand Panel -->
+          <div class="login-visual col-md-5">
+            <i class="fas fa-leaf leaf-icon"></i>
+            <h1>Karibu Groceries LTD</h1>
+            <p>Wholesale Produce Management System</p>
+          </div>
+
+          <!-- Login Form -->
+          <div class="login-form col-md-7">
+            <h2>Welcome Back</h2>
+
+            <form id="loginForm" class="needs-validation" novalidate>
+
+              <!-- Username -->
+              <div class="form-floating mb-4">
+                <input type="text" class="form-control" id="username" name="username" autocomplete="username" required>
+                <label for="username">Username</label>
+              </div>
+
+              <!-- Role -->
+              <div class="form-floating mb-4">
+                <select class="form-select" id="role" name="role" required>
+                  <option value="" disabled selected>Select your role</option>
+                  <option value="director">Director</option>
+                  <option value="manager">Manager</option>
+                  <option value="sales">Sales Agent</option>
+                </select>
+                <label for="role">Role</label>
+              </div>
+
+              <!-- Branch -->
+              <div class="form-floating mb-5">
+                <select class="form-select" id="branch" name="branch" required>
+                  <option value="" disabled selected>Select branch</option>
+                  <option value="maganjo">Maganjo</option>
+                  <option value="matugga">Matugga</option>
+                </select>
+                <label for="branch">Branch</label>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-login w-100">
+                Login
+              </button>
+
+            </form>
+
+            <p class="login-footer">
+              Internal system • Authorized staff only
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth Script -->
+  <script src="./js/auth.js"></script>
+</body>
+</html>

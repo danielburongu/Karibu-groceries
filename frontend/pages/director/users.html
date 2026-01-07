@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Management | Karibu Groceries</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-green: #248b0a;
+      --light-bg: #f4f6f8;
+    }
+
+    body {
+      background-color: var(--light-bg);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    /* Header */
+    .dashboard-header {
+      background-color: var(--primary-green);
+      color: white;
+      padding: 2rem 0;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .page-subtitle {
+      font-size: 1rem;
+      opacity: 0.95;
+      margin-top: 0.4rem;
+    }
+
+    /* Clean Text-Only Back Link */
+    .back-link {
+      color: white;
+      text-decoration: none;
+      padding: 0.7rem 1.4rem;
+      border-radius: 0.5rem;
+      background: rgba(255,255,255,0.15);
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+
+    .back-link:hover {
+      background: rgba(255,255,255,0.25);
+      color: white;
+      text-decoration: none;
+    }
+
+    /* Page Title */
+    .page-title {
+      color: var(--primary-green);
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin: 2rem 0 1.5rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 2px solid #e8f5e9;
+    }
+
+    /* User Card */
+    .user-card {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem;
+    }
+
+    .user-info h5 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .user-meta {
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    .role-badge {
+      display: inline-block;
+      padding: 0.4rem 0.9rem;
+      border-radius: 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .role-director { background: #d4edda; color: #155724; }
+    .role-manager { background: #fff3cd; color: #856404; }
+    .role-sales { background: #d1ecf1; color: #0c5460; }
+
+    /* Action Buttons */
+    .btn-edit {
+      background: #e3f2fd;
+      color: #1976d2;
+      border: none;
+      font-weight: 600;
+    }
+
+    .btn-delete {
+      background: #ffebee;
+      color: #c62828;
+      border: none;
+      font-weight: 600;
+    }
+
+    .btn-add {
+      background-color: var(--primary-green);
+      border: none;
+      font-size: 1.1rem;
+      font-weight: 600;
+      padding: 0.8rem 1.5rem;
+    }
+
+    .btn-add:hover {
+      background-color: #1e7008;
+    }
+
+    /* Empty / Loading State */
+    .loading-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #999;
+    }
+
+    .loading-state p {
+      font-size: 1.1rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-header .container {
+        text-align: center;
+      }
+
+      .back-link {
+        margin-top: 1rem;
+      }
+
+      .user-actions {
+        margin-top: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="container d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h2 class="mb-0">User Management</h2>
+        <p class="page-subtitle">Add, edit, or remove staff accounts</p>
+      </div>
+      <a href="../dashboard.html" class="back-link">Back to Dashboard</a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+
+        <h3 class="page-title">Staff Accounts</h3>
+
+        <!-- Add New User Button -->
+        <div class="text-end mb-4">
+          <button class="btn btn-add" data-bs-toggle="modal" data-bs-target="#addUserModal">
+            Add New User
+          </button>
+        </div>
+
+        <!-- Users List -->
+        <div id="usersList">
+          <div class="loading-state">
+            <p>Loading users...</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Add/Edit User Modal -->
+  <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="userForm">
+          <div class="modal-header" style="background-color: var(--primary-green); color: white;">
+            <h5 class="modal-title" id="addUserModalLabel">Add New User</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="editUserId" value="">
+
+            <div class="mb-4">
+              <label class="form-label fw-bold">Username</label>
+              <input type="text" class="form-control form-control-lg" id="modalUsername" required>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-bold">Role</label>
+              <select class="form-select form-select-lg" id="modalRole" required>
+                <option value="manager">Manager</option>
+                <option value="sales">Sales Agent</option>
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-bold">Branch</label>
+              <select class="form-select form-select-lg" id="modalBranch" required>
+                <option value="maganjo">Maganjo</option>
+                <option value="matugga">Matugga</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-success btn-lg">
+              Save User
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../js/auth.js"></script>
+  <script src="../js/director/users.js"></script>
+</body>
+</html>
