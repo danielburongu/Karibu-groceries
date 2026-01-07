@@ -162,7 +162,7 @@
         <p class="welcome-message">
           Welcome back, <strong id="userName">User</strong> 
           (<span id="userRole">Role</span>) • 
-          Branch: <strong id="userBranch">—</strong> • 
+          Branch: <strong id="userBranch">-</strong> • 
           <span id="currentDate"></span>
         </p>
       </div>
@@ -323,7 +323,7 @@
     // Update header info
     document.getElementById("userName").textContent = user.username || "User";
     document.getElementById("userRole").textContent = role.charAt(0).toUpperCase() + role.slice(1);
-    document.getElementById("userBranch").textContent = user.branch || "—";
+    document.getElementById("userBranch").textContent = user.branch || "-";
     document.getElementById("currentDate").textContent = new Date().toLocaleDateString('en-GB', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });

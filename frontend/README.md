@@ -1,4 +1,4 @@
-# Karibu Groceries LTD – Frontend System
+# Karibu Groceries LTD - Frontend System
 
 ## Project Overview
 Karibu Groceries LTD (KGL) is a wholesale cereal distributor operating two branches.
@@ -127,7 +127,7 @@ if (existingStock) {
 }
 ```
 
-3. **Tonnage validation fixed** — HTML `min` and JS numeric validation aligned (≥1000 KG).
+3. **Tonnage validation fixed** - HTML `min` and JS numeric validation aligned (≥1000 KG).
 
 ---
 
