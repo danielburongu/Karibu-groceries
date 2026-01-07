@@ -36,7 +36,7 @@ salesAgentInput.value = user.username || "Unknown Agent";
 
 let stock = JSON.parse(localStorage.getItem("kglStock")) || [];
 let selectedProduce = null;
-const PRICE_PER_KG = 3500; // Adjust this based on actual pricing logic (could be per produce later)
+const PRICE_PER_KG = 3500; // Will Adjust this based on actual pricing logic (could be per produce later)
 
 // Populate produce dropdown
 function populateProduceOptions() {
@@ -159,10 +159,10 @@ function clearCalculatedFields() {
 form.addEventListener("submit", function (e) {
   e.preventDefault();
 
-  // Clear previous success
+  // Clears previous success
   successMessage.style.display = "none";
 
-  // Basic required field check
+  // Required field check
   const requiredFields = [
     { field: document.getElementById("buyerName"), name: "Buyer Name" },
     { field: document.getElementById("nin"), name: "National ID (NIN)" },
@@ -215,7 +215,7 @@ form.addEventListener("submit", function (e) {
   // SAVE TRANSACTION
   // ===============================
   const creditSale = {
-    id: Date.now(), // Simple unique ID
+    id: Date.now(),
     buyerName: document.getElementById("buyerName").value.trim(),
     nin,
     location: document.getElementById("location").value.trim(),
@@ -238,7 +238,7 @@ form.addEventListener("submit", function (e) {
 
   // Save sale
   let creditSales = JSON.parse(localStorage.getItem("kglCreditSales")) || [];
-  creditSales.unshift(creditSale); // Add to beginning for recent first
+  creditSales.unshift(creditSale);
   localStorage.setItem("kglCreditSales", JSON.stringify(creditSales));
 
   // ===============================

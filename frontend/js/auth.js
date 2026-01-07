@@ -47,7 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Login successful:", userSession);
 
     // ALL roles now go to the unified main dashboard
-    // This matches your new structure with dashboard.html as central hub
     setTimeout(() => {
       window.location.href = "./dashboard.html";
     }, 400);

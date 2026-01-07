@@ -44,7 +44,7 @@ const cashSales = JSON.parse(localStorage.getItem("kglSales")) || [];
 const creditSales = JSON.parse(localStorage.getItem("kglCreditSales")) || [];
 
 // ===============================
-// Normalize All Sales Records
+// All Sales Records
 // ===============================
 let allSales = [];
 

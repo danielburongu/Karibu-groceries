@@ -1,4 +1,4 @@
-// dashboard.js - Enhanced with Top-Selling, Low Stock Alerts, and Export
+// dashboard.js
 
 document.addEventListener("DOMContentLoaded", () => {
   const user = JSON.parse(localStorage.getItem("kglUser") || "{}");
@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `).join("");
   }
 
-  // === Export Reports ===
+  // === Export Reports =======
   document.getElementById("exportBtn").addEventListener("click", () => {
     const data = {
       summary: { todayCash, totalCredit, totalStockKG, todayTransactions },

@@ -110,7 +110,7 @@ form.addEventListener("submit", function (e) {
     // ===============================
     let stock = JSON.parse(localStorage.getItem("kglStock")) || [];
 
-    // LOGICAL FIX #11:
+    // LOGICAL FIX:
     // Merge stock if same produce exists in same branch
     const existingStock = stock.find(
       item =>

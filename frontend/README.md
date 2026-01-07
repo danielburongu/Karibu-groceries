@@ -78,9 +78,7 @@ Enforced Role-based access at the frontend level.
 
 # Debugging-js
 
-# Procurement Form Debugging
-
-## Assignment Task
+# Procurement Form Debugging  Assignment Task
 
 Debug the **Karibu Groceries procurement form** by:
 
