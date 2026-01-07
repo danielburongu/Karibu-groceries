@@ -1,5 +1,5 @@
 // ===============================
-// PROCUREMENT FORM LOGIC (FINAL)
+// PROCUREMENT FORM LOGIC
 // ===============================
 
 // Fetch logged-in user
@@ -48,7 +48,7 @@ form.addEventListener("submit", function (e) {
     const sellingPrice = Number(document.getElementById("sellingPrice").value);
 
     // ===============================
-    // VALIDATIONS (SPEC-ALIGNED)
+    // VALIDATIONS
     // ===============================
 
     // FIX #2: Produce name must be alphanumeric and not empty
