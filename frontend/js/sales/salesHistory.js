@@ -1,187 +1,180 @@
-// salesHistory.js
+/* SESSION CHECK */
+let user = null;
 
-const user = JSON.parse(localStorage.getItem("kglUser") || "{}");
+try {
+  user = JSON.parse(localStorage.getItem("kglUser"));
+} catch {
+  user = null;
+}
 
-// ===============================
-// Role Protection
-// ===============================
-if (
-  !user ||
-  (user.role !== "sales" && user.role !== "manager" && user.role !== "director")
-) {
-  alert("Access denied. Unauthorized role.");
+if (!user || !user.role) {
   window.location.href = "../index.html";
 }
 
-// ===============================
-// Dynamic Back Button
-// ===============================
-const backBtn = document.getElementById("backToDashboard");
-if (backBtn) {
-  if (user.role === "director") {
-    backBtn.href = "../director/director.html";
-  } else if (user.role === "manager") {
-    backBtn.href = "./manager.html";
-  } else {
-    backBtn.href = "./sales.html"; // Sales Agent dashboard (create later if needed)
-  }
+/* LOAD DATA */
+const cashSales = JSON.parse(localStorage.getItem("kglSales") || "[]");
+const creditSales = JSON.parse(localStorage.getItem("kglCreditSales") || "[]");
+
+/* BUTTON CONTROL (SAFE) */
+const cashBtn = document.getElementById("cashBtn");
+const creditBtn = document.getElementById("creditBtn");
+const exportBtn = document.getElementById("exportCsvBtn");
+
+if (user.role === "director") {
+  cashBtn && (cashBtn.style.display = "none");
+  creditBtn && (creditBtn.style.display = "none");
+  exportBtn && (exportBtn.style.display = "none");
 }
 
-// ===============================
-// DOM Elements
-// ===============================
+/* DIRECTOR VIEW (SUMMARY ONLY) */
+if (user.role === "director") {
+  const summary = document.getElementById("directorSummary");
+  summary && summary.classList.remove("d-none");
+
+  const totalCash = cashSales.reduce((s, x) => s + (x.amountPaid || 0), 0);
+  const totalCredit = creditSales.reduce((s, x) => s + (x.amountDue || 0), 0);
+  const totalTonnage =
+    cashSales.reduce((s, x) => s + (x.tonnageSold || 0), 0) +
+    creditSales.reduce((s, x) => s + (x.tonnage || 0), 0);
+
+  setText("totalCash", formatCurrency(totalCash));
+  setText("totalCredit", formatCurrency(totalCredit));
+  setText("totalTonnage", `${totalTonnage} KG`);
+  setText("totalTransactions", cashSales.length + creditSales.length);
+}
+
+/* 
+  TABLE VIEW (MANAGER / SALES) */
+document.getElementById("salesTableSection")?.classList.remove("d-none");
+
 const tableBody = document.getElementById("salesTableBody");
 const emptyState = document.getElementById("emptyState");
 const recordCount = document.getElementById("recordCount");
 
-const searchInput = document.getElementById("searchInput");
 const branchFilter = document.getElementById("branchFilter");
 const typeFilter = document.getElementById("typeFilter");
-const dateFrom = document.getElementById("dateFrom");
-const dateTo = document.getElementById("dateTo");
 
-// ===============================
-// Load Data
-// ===============================
-const cashSales = JSON.parse(localStorage.getItem("kglSales")) || [];
-const creditSales = JSON.parse(localStorage.getItem("kglCreditSales")) || [];
-
-// ===============================
-// All Sales Records
-// ===============================
 let allSales = [];
 
-// Cash Sales
-cashSales.forEach((sale) => {
+/* NORMALIZE DATA */
+cashSales.forEach((s) => {
   allSales.push({
-    dateTime: `${sale.date || ""} ${sale.time || ""}`.trim(),
-    produce: sale.produceName || "Unknown",
-    branch: (sale.branch || "unknown").toLowerCase(),
-    tonnage: parseFloat(sale.tonnageSold) || 0,
-    amount: parseFloat(sale.amountPaid) || 0,
-    buyer: sale.buyerName || "N/A",
-    agent: sale.salesAgent || "Unknown",
+    date: `${s.date || ""} ${s.time || ""}`.trim(),
+    produce: s.produceName || "-",
+    branch: s.branch || "-",
+    kg: s.tonnageSold || 0,
+    amount: s.amountPaid || 0,
+    buyer: s.buyerName || "-",
+    agent: s.salesAgent || "",
     type: "cash",
-    rawDate: sale.date || "", // For date filtering
   });
 });
 
-// Credit Sales
-creditSales.forEach((sale) => {
+creditSales.forEach((s) => {
   allSales.push({
-    dateTime: `${sale.dispatchDate || ""} ${sale.dispatchTime || ""}`.trim(),
-    produce: sale.produceName || "Unknown",
-    branch: (sale.branch || "unknown").toLowerCase(),
-    tonnage: parseFloat(sale.tonnage) || 0,
-    amount: parseFloat(sale.amountDue) || 0,
-    buyer: sale.buyerName || "N/A",
-    agent: sale.salesAgent || "Unknown",
+    date: `${s.dispatchDate || ""} ${s.dispatchTime || ""}`.trim(),
+    produce: s.produceName || "-",
+    branch: s.branch || "-",
+    kg: s.tonnage || 0,
+    amount: s.amountDue || 0,
+    buyer: s.buyerName || "-",
+    agent: s.salesAgent || "",
     type: "credit",
-    rawDate: sale.dispatchDate || "",
   });
 });
 
-// ===============================
-// Role-Based Initial Filtering (Agent sees only own sales)
-// ===============================
-let displayedSales = allSales.filter((sale) => {
-  if (user.role === "sales") {
-    return sale.agent.toLowerCase() === user.username?.toLowerCase();
-  }
-  return true; // Manager & Director see all
-});
+/* SALES AGENT VIEW (OWN SALES) */
+if (user.role === "sales") {
+  exportBtn && (exportBtn.style.display = "none");
 
-// ===============================
-// Sort: Most Recent First
-// ===============================
-displayedSales.sort((a, b) => {
-  const dateA = new Date(a.rawDate || a.dateTime);
-  const dateB = new Date(b.rawDate || b.dateTime);
-  return dateB - dateA;
-});
+  allSales = allSales.filter(
+    (s) => s.agent && s.agent.toLowerCase() === user.username.toLowerCase(),
+  );
+}
 
-// ===============================
-// Render Function
-// ===============================
-function renderTable(sales) {
-  // Update record count
-  recordCount.textContent = `${sales.length} record${sales.length !== 1 ? "s" : ""} found`;
+/* RENDER TABLE */
+function render(data) {
+  if (!tableBody || !emptyState) return;
 
-  if (sales.length === 0) {
-    tableBody.innerHTML = "";
-    emptyState.style.display = "block";
+  tableBody.innerHTML = "";
+
+  if (allSales.length === 0) {
+    showEmpty(
+      "No sales recorded yet",
+      "Sales transactions will appear here once recorded.",
+    );
+    recordCount.textContent = "0 records";
     return;
   }
 
-  emptyState.style.display = "none";
-  tableBody.innerHTML = "";
+  if (data.length === 0) {
+    showEmpty("No matching records", "Adjust branch or sale type filters.");
+    recordCount.textContent = "0 records";
+    return;
+  }
 
-  sales.forEach((sale) => {
-    const row = document.createElement("tr");
+  emptyState.classList.add("d-none");
+  recordCount.textContent = `${data.length} record(s)`;
 
-    const branchName =
-      sale.branch.charAt(0).toUpperCase() + sale.branch.slice(1);
-
-    row.innerHTML = `
-      <td>${sale.dateTime || "—"}</td>
-      <td>${sale.produce}</td>
-      <td>${branchName}</td>
-      <td>${sale.tonnage.toLocaleString()}</td>
-      <td class="amount">UGX ${sale.amount.toLocaleString()}</td>
-      <td>${sale.buyer}</td>
-      <td>${sale.agent}</td>
-      <td class="type ${sale.type}">${sale.type.charAt(0).toUpperCase() + sale.type.slice(1)}</td>
+  data.forEach((s) => {
+    tableBody.innerHTML += `
+      <tr>
+        <td>${s.date}</td>
+        <td>${s.produce}</td>
+        <td>${capitalize(s.branch)}</td>
+        <td class="text-end">${s.kg}</td>
+        <td class="text-end">${formatCurrency(s.amount)}</td>
+        <td>${s.buyer}</td>
+        <td>${s.agent || "-"}</td>
+        <td class="type ${s.type}">${s.type}</td>
+      </tr>
     `;
-
-    tableBody.appendChild(row);
   });
 }
 
-// Initial render
-renderTable(displayedSales);
-
-// ===============================
-// Live Filters
-// ===============================
+/* FILTER HANDLING (SAFE) */
 function applyFilters() {
-  let filtered = [...displayedSales];
+  let filtered = [...allSales];
 
-  const searchTerm = searchInput.value.trim().toLowerCase();
-  const selectedBranch = branchFilter.value.toLowerCase();
-  const selectedType = typeFilter.value;
-  const fromDate = dateFrom.value;
-  const toDate = dateTo.value;
-
-  if (searchTerm) {
-    filtered = filtered.filter(
-      (sale) =>
-        sale.buyer.toLowerCase().includes(searchTerm) ||
-        sale.produce.toLowerCase().includes(searchTerm) ||
-        sale.agent.toLowerCase().includes(searchTerm),
-    );
+  if (branchFilter?.value) {
+    filtered = filtered.filter((s) => s.branch === branchFilter.value);
   }
 
-  if (selectedBranch) {
-    filtered = filtered.filter((sale) => sale.branch === selectedBranch);
+  if (typeFilter?.value) {
+    filtered = filtered.filter((s) => s.type === typeFilter.value);
   }
 
-  if (selectedType) {
-    filtered = filtered.filter((sale) => sale.type === selectedType);
-  }
-
-  if (fromDate) {
-    filtered = filtered.filter((sale) => sale.rawDate >= fromDate);
-  }
-
-  if (toDate) {
-    filtered = filtered.filter((sale) => sale.rawDate <= toDate);
-  }
-
-  renderTable(filtered);
+  render(filtered);
 }
 
-// Attach event listeners
-[searchInput, branchFilter, typeFilter, dateFrom, dateTo].forEach((el) => {
-  if (el) el.addEventListener("input", applyFilters);
-  if (el) el.addEventListener("change", applyFilters);
-});
+branchFilter?.addEventListener("change", applyFilters);
+typeFilter?.addEventListener("change", applyFilters);
+
+/* INIT */
+render(allSales);
+
+/* HELPERS */
+function capitalize(v = "") {
+  return v ? v.charAt(0).toUpperCase() + v.slice(1) : "-";
+}
+
+function formatCurrency(v = 0) {
+  return new Intl.NumberFormat("en-UG", {
+    style: "currency",
+    currency: "UGX",
+    minimumFractionDigits: 0,
+  }).format(v);
+}
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+function showEmpty(title, message) {
+  emptyState.classList.remove("d-none");
+  emptyState.innerHTML = `
+    <h5 class="mb-2">${title}</h5>
+    <p class="text-muted mb-0">${message}</p>
+  `;
+}

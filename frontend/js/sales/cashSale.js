@@ -1,135 +1,95 @@
-// cashSale.js
+const user = JSON.parse(localStorage.getItem("kglUser") || "{}");
 
-const user = JSON.parse(localStorage.getItem("kglUser"));
-
-// ===============================
-// Role protection
-// ===============================
+/* ROLE PROTECTION */
 if (!user || user.role !== "sales") {
   alert("Access denied. Sales agents only.");
   window.location.href = "../index.html";
 }
 
-// ===============================
-// Initialize fixed fields
-// ===============================
 document.getElementById("salesAgent").value = user.username;
 
-const produceSelect = document.getElementById("produceSelect");
-const availableStockText = document.getElementById("availableStock");
-const priceInput = document.getElementById("price");
-const branchInput = document.getElementById("branch");
-
+/* LOAD STOCK (branch-specific) */
 let stock = JSON.parse(localStorage.getItem("kglStock")) || [];
-let selectedProduce = null;
+stock = stock.filter((s) => s.branch === user.branch && s.tonnage > 0);
 
-// ===============================
-// Populate produce dropdown
-// (only produce with stock > 0)
-// ===============================
-if (stock.length === 0) {
-  availableStockText.textContent = "No stock available.";
-} else {
-  stock.forEach((item, index) => {
-    if (item.tonnage > 0) {
-      const option = document.createElement("option");
-      option.value = index;
-      option.textContent = `${item.produceName} (${item.branch})`;
-      produceSelect.appendChild(option);
-    }
-  });
-}
+const produceSelect = document.getElementById("produceSelect");
+const availableStock = document.getElementById("availableStock");
+const price = document.getElementById("price");
+const branch = document.getElementById("branch");
+const amountPaid = document.getElementById("amountPaid");
+const tonnageInput = document.getElementById("tonnageSold");
 
-// ===============================
-// Handle produce selection
-// ===============================
-produceSelect.addEventListener("change", function () {
-  const index = this.value;
+let selectedStock = null;
 
-  if (index === "") {
-    selectedProduce = null;
-    availableStockText.textContent = "";
-    priceInput.value = "";
-    branchInput.value = "";
-    return;
-  }
-
-  selectedProduce = stock[index];
-
-  availableStockText.textContent = `Available stock: ${selectedProduce.tonnage} KG`;
-
-  priceInput.value = selectedProduce.sellingPrice;
-  branchInput.value = selectedProduce.branch;
+/* POPULATE DROPDOWN */
+stock.forEach((item) => {
+  const opt = document.createElement("option");
+  opt.value = item.produceName;
+  opt.textContent = `${item.produceName} (${item.tonnage} KG)`;
+  produceSelect.appendChild(opt);
 });
 
-// ===============================
-// Handle sale submission
-// ===============================
-document
-  .getElementById("cashSaleForm")
-  .addEventListener("submit", function (e) {
-    e.preventDefault();
+/* HANDLE SELECTION */
+produceSelect.addEventListener("change", () => {
+  selectedStock = stock.find((s) => s.produceName === produceSelect.value);
 
-    if (!selectedProduce) {
-      alert("Please select a produce.");
-      return;
-    }
+  if (!selectedStock) return;
 
-    const tonnageSold = Number(document.getElementById("tonnageSold").value);
-    const amountPaid = Number(document.getElementById("amountPaid").value);
-    const buyerName = document.getElementById("buyerName").value.trim();
+  availableStock.value = `${selectedStock.tonnage} KG`;
+  price.value = selectedStock.sellingPrice;
+  branch.value = selectedStock.branch;
+  amountPaid.value = "";
+});
 
-    // ===============================
-    // Validations (document-aligned)
-    // ===============================
-    if (tonnageSold <= 0 || tonnageSold > selectedProduce.tonnage) {
-      alert("Invalid tonnage. Cannot exceed available stock.");
-      return;
-    }
+/* AUTO CALCULATE AMOUNT */
+tonnageInput.addEventListener("input", () => {
+  if (!selectedStock) return;
 
-    if (amountPaid < 10000) {
-      alert("Amount paid must be at least 5 digits (UGX).");
-      return;
-    }
+  const qty = Number(tonnageInput.value);
+  if (qty > 0) {
+    amountPaid.value = (qty * selectedStock.sellingPrice).toLocaleString();
+  }
+});
 
-    if (!/^[a-zA-Z0-9 ]{2,}$/.test(buyerName)) {
-      alert("Buyer name must be at least 2 characters.");
-      return;
-    }
+/* SUBMIT SALE */
+document.getElementById("cashSaleForm").addEventListener("submit", (e) => {
+  e.preventDefault();
 
-    // ===============================
-    // Reduce stock
-    // ===============================
-    selectedProduce.tonnage -= tonnageSold;
-    localStorage.setItem("kglStock", JSON.stringify(stock));
+  if (!selectedStock) return alert("Select produce");
 
-    // ===============================
-    // Record sale (explicit date & time)
-    // ===============================
-    const saleRecord = {
-      produceName: selectedProduce.produceName,
-      branch: selectedProduce.branch,
-      tonnageSold,
-      amountPaid,
-      buyerName,
-      salesAgent: user.username,
-      date: new Date().toLocaleDateString(),
-      time: new Date().toLocaleTimeString(),
-    };
+  const qty = Number(tonnageInput.value);
+  if (qty <= 0 || qty > selectedStock.tonnage) {
+    return alert("Invalid tonnage");
+  }
 
-    let sales = JSON.parse(localStorage.getItem("kglSales")) || [];
-    sales.push(saleRecord);
-    localStorage.setItem("kglSales", JSON.stringify(sales));
+  const buyer = buyerName.value.trim();
+  if (!/^[a-zA-Z0-9 ]{2,}$/.test(buyer)) {
+    return alert("Invalid buyer name");
+  }
 
-    alert("Sale recorded successfully.");
+  /* REDUCE STOCK */
+  selectedStock.tonnage -= qty;
+  localStorage.setItem("kglStock", JSON.stringify(stock));
 
-    // ===============================
-    // Reset form state
-    // ===============================
-    document.getElementById("cashSaleForm").reset();
-    selectedProduce = null;
-    availableStockText.textContent = "";
-    priceInput.value = "";
-    branchInput.value = "";
-    produceSelect.selectedIndex = 0;
+  /* RECORD SALE */
+  const sales = JSON.parse(localStorage.getItem("kglSales") || "[]");
+  sales.push({
+    produceName: selectedStock.produceName,
+    branch: selectedStock.branch,
+    tonnageSold: qty,
+    amountPaid: qty * selectedStock.sellingPrice,
+    buyerName: buyer,
+    salesAgent: user.username,
+    date: new Date().toLocaleDateString("en-GB"),
+    time: new Date().toLocaleTimeString("en-GB"),
   });
+  localStorage.setItem("kglSales", JSON.stringify(sales));
+
+  /* STOCK ALERT */
+  if (selectedStock.tonnage === 0) {
+    alert(`Stock Alert: ${selectedStock.produceName} is now OUT OF STOCK`);
+  }
+
+  alert("Cash sale recorded successfully.");
+  location.reload();
+});

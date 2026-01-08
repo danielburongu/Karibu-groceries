@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Director Dashboard | Karibu Groceries</title>
+
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="../../css/main.css" />
+  </head>
+  <body>
+    <!--TOP NAVIGATION -->
+    <nav class="top-nav">
+      <div class="container">
+        <span class="nav-brand"> Karibu <span>Groceries</span> </span>
+
+        <div class="nav-links d-none d-md-flex">
+          <a href="./dashboard.html" class="nav-link active">Overview</a>
+          <a href="./users.html" class="nav-link">Users</a>
+        </div>
+
+        <div class="nav-actions">
+          <button id="logoutBtn" class="btn btn-outline-danger btn-sm">
+            Logout
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- PAGE HEADER -->
+    <header class="dashboard-header border-bottom">
+      <div class="container">
+        <h4 class="mb-1">Director Overview</h4>
+        <p class="page-subtitle mb-0">
+          Aggregated business performance (read-only)
+        </p>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container py-5">
+      <!-- SUMMARY KPIs -->
+      <section class="mb-5">
+        <div class="row g-4">
+          <div class="col-md-6 col-lg-3">
+            <div class="summary-card highlight-card">
+              <h5>Total Revenue</h5>
+              <p class="summary-amount" id="totalRevenue">UGX 0</p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-3">
+            <div class="summary-card info-card">
+              <h5>Outstanding Credit</h5>
+              <p class="summary-amount" id="totalCredit">UGX 0</p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-3">
+            <div class="summary-card">
+              <h5>Total Tonnage Sold</h5>
+              <p class="summary-amount" id="totalTonnage">0 KG</p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-3">
+            <div class="summary-card">
+              <h5>Total Transactions</h5>
+              <p class="summary-amount" id="totalTransactions">0</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BRANCH SUMMARY -->
+      <section>
+        <div class="card table-card border-0">
+          <div class="table-header">
+            <h4>Branch Performance Summary</h4>
+            <span class="table-meta">
+              Consolidated view across all branches
+            </span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Branch</th>
+                  <th class="text-end">Cash Sales (UGX)</th>
+                  <th class="text-end">Credit Outstanding (UGX)</th>
+                  <th class="text-end">KG Sold</th>
+                </tr>
+              </thead>
+              <tbody id="branchSummaryTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- SCRIPTS -->
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/director/dashboard.js"></script>
+  </body>
+</html>

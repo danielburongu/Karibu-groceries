@@ -1,5 +1,3 @@
-// dashboard.js
-
 document.addEventListener("DOMContentLoaded", () => {
   const user = JSON.parse(localStorage.getItem("kglUser") || "{}");
 
@@ -8,178 +6,186 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // Header info
-  document.getElementById("userName").textContent =
-    user.displayName || user.username || "User";
-  document.getElementById("userRole").textContent =
-    user.role === "sales"
-      ? "Sales Agent"
-      : user.role === "manager"
-        ? "Manager"
-        : "Director";
-  document.getElementById("userBranch").textContent = user.branch
-    ? user.branch.charAt(0).toUpperCase() + user.branch.slice(1)
-    : "-";
+  const role = user.role;
 
-  document.getElementById("currentDate").textContent =
+  /* SAFE DOM HELPERS*/
+  const $ = (id) => document.getElementById(id);
+  const setText = (id, value) => {
+    const el = $(id);
+    if (el) el.textContent = value;
+  };
+
+  /* ROLE VISIBILITY */
+  document.querySelectorAll("[class*='role-']").forEach((el) => {
+    el.style.display = "none";
+  });
+
+  document.querySelectorAll(`.role-${role}`).forEach((el) => {
+    el.style.display = "";
+  });
+
+  /* HEADER INFO */
+  setText("navUserName", user.username || "User");
+  setText("dropdownUserName", user.username || "User");
+  setText("dropdownUserRole", role.charAt(0).toUpperCase() + role.slice(1));
+  setText("profileAvatar", (user.username || "U").charAt(0).toUpperCase());
+  setText("userBranch", user.branch || "—");
+
+  setText(
+    "currentDate",
     new Date().toLocaleDateString("en-GB", {
       weekday: "long",
       day: "numeric",
       month: "long",
       year: "numeric",
-    });
+    }),
+  );
 
-  // Role visibility
-  if (user.role === "sales") {
-    document
-      .getElementById("procurementLink")
-      ?.style.setProperty("display", "none");
-    document.getElementById("stockLink")?.style.setProperty("display", "none");
-    document.getElementById("adminLink")?.style.setProperty("display", "none");
-  } else if (user.role === "manager") {
-    document.getElementById("adminLink")?.style.setProperty("display", "none");
-  }
-
-  // Logout
-  document.getElementById("logoutBtn").addEventListener("click", () => {
-    if (confirm("Logout from Karibu Groceries?")) {
-      localStorage.removeItem("kglUser");
-      window.location.href = "./index.html";
-    }
-  });
-
-  // Load data
-  const today = new Date();
-  const todayStr = today.toLocaleDateString("en-GB");
-
+  /* DATA LOADING */
   const cashSales = JSON.parse(localStorage.getItem("kglSales") || "[]");
   const creditSales = JSON.parse(
     localStorage.getItem("kglCreditSales") || "[]",
   );
-  const allSales = [...cashSales, ...creditSales];
   const stock = JSON.parse(localStorage.getItem("kglStock") || "[]");
 
-  // Stats
-  const todayCash = cashSales
-    .filter((s) => s.date === todayStr)
-    .reduce((sum, s) => sum + s.amountPaid, 0);
+  const todayStr = new Date().toISOString().split("T")[0];
 
-  const totalCredit = creditSales.reduce((sum, s) => sum + s.amountDue, 0);
+  const parseDate = (val) => {
+    if (!val) return null;
+    const d = new Date(val);
+    return isNaN(d) ? null : d.toISOString().split("T")[0];
+  };
 
-  const totalStockKG = stock.reduce((sum, item) => sum + item.tonnage, 0);
+  /* NORMALIZE SALES */
+  const allSales = [];
 
-  const todayTransactions = allSales.filter((s) => s.date === todayStr).length;
-
-  document.getElementById("cashToday").textContent = formatCurrency(todayCash);
-  document.getElementById("creditTotal").textContent =
-    formatCurrency(totalCredit);
-  document.getElementById("totalStock").textContent =
-    totalStockKG.toLocaleString() + " KG";
-  document.getElementById("todayTx").textContent = todayTransactions;
-
-  // === Top Selling Produce ===
-  const produceSales = {};
-  allSales.forEach((sale) => {
-    const name = sale.produceName || sale.produceName;
-    produceSales[name] =
-      (produceSales[name] || 0) + (sale.tonnageSold || sale.tonnage || 0);
+  cashSales.forEach((s) => {
+    allSales.push({
+      date: s.date,
+      amount: s.amountPaid || 0,
+      tonnage: s.tonnageSold || 0,
+      produce: s.produceName || "Unknown",
+    });
   });
 
-  const topSelling = Object.entries(produceSales)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 5);
-
-  const topContainer = document.getElementById("topSellingContainer");
-  if (topSelling.length === 0) {
-    topContainer.innerHTML = `<div class="empty-message">No sales recorded yet.</div>`;
-  } else {
-    topContainer.innerHTML = topSelling
-      .map(
-        ([name, kg]) => `
-      <div class="top-item">
-        <strong>${name}</strong>
-        <span class="text-success fw-bold">${kg.toLocaleString()} KG sold</span>
-      </div>
-    `,
-      )
-      .join("");
-  }
-
-  // === Low Stock Alerts =====
-  const lowStock = stock.filter((item) => item.tonnage < 2000); // threshold
-  const lowContainer = document.getElementById("lowStockContainer");
-
-  if (lowStock.length === 0) {
-    lowContainer.innerHTML = `<div class="empty-message">All items are well-stocked.</div>`;
-  } else {
-    lowContainer.innerHTML = lowStock
-      .map(
-        (item) => `
-      <div class="low-stock-item">
-        <div>
-          <strong>${item.produceName} (${item.produceType || "Standard"})</strong><br>
-          <small class="text-muted">${item.branch} branch</small>
-        </div>
-        <div class="text-end">
-          <span class="badge">${item.tonnage.toLocaleString()} KG left</span>
-        </div>
-      </div>
-    `,
-      )
-      .join("");
-  }
-
-  // === Export Reports =======
-  document.getElementById("exportBtn").addEventListener("click", () => {
-    const data = {
-      summary: { todayCash, totalCredit, totalStockKG, todayTransactions },
-      topSelling,
-      lowStock,
-      allSales: allSales.length,
-      timestamp: new Date().toISOString(),
-    };
-
-    const csv = convertToCSV(data);
-    downloadCSV(csv, `karibu-report-${today.toISOString().slice(0, 10)}.csv`);
+  creditSales.forEach((s) => {
+    allSales.push({
+      date: s.dispatchDate,
+      amount: s.amountDue || 0,
+      tonnage: s.tonnage || 0,
+      produce: s.produceName || "Unknown",
+    });
   });
 
-  function convertToCSV() {
-    let csv = "Karibu Groceries Daily Report\n\n";
-    csv += `Date,${todayStr}\n`;
-    csv += `Cash Sales Today,${formatCurrency(todayCash)}\n`;
-    csv += `Credit Outstanding,${formatCurrency(totalCredit)}\n`;
-    csv += `Total Stock,${totalStockKG} KG\n`;
-    csv += `Today's Transactions,${todayTransactions}\n\n`;
+  /* DIRECTOR KPIs */
+  if (role === "director") {
+    const totalCash = cashSales.reduce((s, x) => s + (x.amountPaid || 0), 0);
+    const totalCredit = creditSales.reduce((s, x) => s + (x.amountDue || 0), 0);
+    const totalStock = stock.reduce((s, i) => s + (i.tonnage || 0), 0);
 
-    csv += "Top Selling Produce\n";
-    csv += "Produce,KG Sold\n";
-    topSelling.forEach(([name, kg]) => (csv += `${name},${kg}\n`));
+    setText("dirCashTotal", formatCurrency(totalCash));
+    setText("dirCreditTotal", formatCurrency(totalCredit));
+    setText("dirStockTotal", `${totalStock.toLocaleString()} KG`);
+  }
 
-    csv += "\nLow Stock Items\n";
-    csv += "Produce,Type,Branch,Remaining KG\n";
-    lowStock.forEach(
-      (item) =>
-        (csv += `${item.produceName},${item.produceType || "-"},${item.branch},${item.tonnage}\n`),
+  /* MANAGER / SALES KPIs */
+  if (role !== "director") {
+    const todaySales = allSales.filter((s) => parseDate(s.date) === todayStr);
+
+    const todayCash = todaySales.reduce((s, x) => s + x.amount, 0);
+
+    setText("cashToday", formatCurrency(todayCash));
+    setText("todayTx", todaySales.length);
+  }
+
+  if (role === "manager") {
+    const outstandingCredit = creditSales.reduce(
+      (s, x) => s + (x.amountDue || 0),
+      0,
     );
 
-    return csv;
+    const availableStock = stock.reduce((s, i) => s + (i.tonnage || 0), 0);
+
+    setText("creditTotal", formatCurrency(outstandingCredit));
+    setText("stockTotal", `${availableStock.toLocaleString()} KG`);
   }
 
-  function downloadCSV(csv, filename) {
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    window.URL.revokeObjectURL(url);
+  /* TOP SELLING PRODUCE */
+  const produceTotals = {};
+
+  allSales.forEach((s) => {
+    produceTotals[s.produce] = (produceTotals[s.produce] || 0) + s.tonnage;
+  });
+
+  const topSelling = Object.entries(produceTotals)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
+
+  const topContainer = $("topSellingContainer");
+
+  if (topContainer) {
+    topContainer.innerHTML =
+      topSelling.length === 0
+        ? `<div class="empty-state">No sales recorded yet.</div>`
+        : `
+          <div class="list-group list-group-flush">
+            ${topSelling
+              .map(
+                ([name, kg], i) => `
+              <div class="list-group-item d-flex justify-content-between">
+                <strong>#${i + 1} ${name}</strong>
+                <span class="text-success">${kg.toLocaleString()} KG</span>
+              </div>`,
+              )
+              .join("")}
+          </div>`;
   }
 
+  /*LOW STOCK ALERTS (FIXED ID) */
+  const lowStockContainer = $("lowStockContainer");
+  const threshold = 2000;
+
+  if (lowStockContainer) {
+    const lowItems = stock
+      .filter((i) => (i.tonnage || 0) < threshold)
+      .sort((a, b) => (a.tonnage || 0) - (b.tonnage || 0));
+
+    lowStockContainer.innerHTML =
+      lowItems.length === 0
+        ? `<div class="empty-state">All stock levels are healthy.</div>`
+        : `
+          <div class="list-group list-group-flush">
+            ${lowItems
+              .map(
+                (i) => `
+              <div class="list-group-item">
+                <strong>${i.produceName}</strong><br/>
+                <small class="text-warning">
+                  ${(i.tonnage || 0).toLocaleString()} KG remaining
+                </small>
+              </div>`,
+              )
+              .join("")}
+          </div>`;
+  }
+
+  /* LOGOUT (SAFE)*/
+  const logoutBtn = $("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      if (confirm("Logout from Karibu Groceries?")) {
+        localStorage.removeItem("kglUser");
+        window.location.href = "./index.html";
+      }
+    });
+  }
+
+  /* HELPERS*/
   function formatCurrency(amount) {
     return new Intl.NumberFormat("en-UG", {
       style: "currency",
       currency: "UGX",
       minimumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount || 0);
   }
 });
