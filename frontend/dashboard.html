@@ -15,52 +15,8 @@
     <link rel="stylesheet" href="./css/main.css" />
   </head>
   <body>
-    <!-- navigation -->
-    <nav class="top-nav">
-      <div class="container">
-        <a href="./dashboard.html" class="nav-brand">
-          Karibu <span>Groceries</span>
-        </a>
-
-        <div class="nav-links d-none d-md-flex">
-          <a href="./dashboard.html" class="nav-link active">Dashboard</a>
-          <a
-            href="./pages/sales-history.html"
-            class="nav-link role-sales role-manager"
-            >Sales</a
-          >
-          <a href="./pages/stock.html" class="nav-link role-manager">Stock</a>
-          <a href="./pages/procurement.html" class="nav-link role-manager"
-            >Procurement</a
-          >
-          <a
-            href="./pages/director/dashboard.html"
-            class="nav-link role-director"
-            >Director Panel</a
-          >
-          <a href="./pages/director/users.html" class="nav-link role-director"
-            >Users</a
-          >
-        </div>
-
-        <div class="nav-actions">
-          <div class="profile-menu">
-            <button class="profile-trigger" id="profileToggle">
-              <div class="profile-avatar" id="profileAvatar">U</div>
-              <span id="navUserName">User</span>
-            </button>
-
-            <div class="profile-dropdown" id="profileDropdown">
-              <div class="profile-dropdown-header">
-                <strong id="dropdownUserName">User</strong>
-                <small id="dropdownUserRole">Role</small>
-              </div>
-              <button id="logoutBtn">Logout</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
+    <!-- Dynamic Navbar Placeholder -->
+    <div id="navbar-container"></div>
 
     <!-- Page Header-->
     <header class="dashboard-header">
@@ -169,79 +125,69 @@
           </div>
         </div>
       </section>
-
-      <!-- INSIGHTS -->
-      <section>
-        <div class="row g-4">
-          <div class="col-lg-6">
-            <div class="card">
-              <div class="card-body">
-                <h4 class="section-title mb-3">Top Selling Produce</h4>
-                <div id="topSellingContainer">
-                  <div class="text-muted text-center py-4">
-                    No sales recorded yet.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-6">
-            <div class="card">
-              <div class="card-body">
-                <h4 class="section-title mb-3">Low Stock Alerts</h4>
-                <div id="lowStockList">
-                  <div class="text-muted text-center py-4">
-                    All stock levels are healthy.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SALES TREND -->
-        <div class="row g-4 mt-4">
-          <div class="col-12">
-            <div class="card">
-              <div
-                class="card-header d-flex justify-content-between align-items-center py-3"
-                data-bs-toggle="collapse"
-                data-bs-target="#salesTrendBody"
-                style="cursor: pointer"
-              >
-                <h4 class="section-title mb-0">Sales Trend</h4>
-                <div>
-                  <button
-                    class="btn btn-outline-secondary btn-sm me-2"
-                    id="togglePeriodBtn"
-                  >
-                    Last 7 Days
-                  </button>
-                  <button
-                    class="btn btn-outline-primary btn-sm"
-                    id="exportTrendBtn"
-                  >
-                    Export CSV
-                  </button>
-                </div>
-              </div>
-              <div class="collapse show" id="salesTrendBody">
-                <div class="card-body pt-0">
-                  <small class="text-muted d-block mb-3" id="periodLabel"
-                    >Last 7 Days</small
-                  >
-                  <div id="salesTrendContainer"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </main>
 
     <!-- SCRIPTS -->
     <script src="./js/auth.js"></script>
     <script src="./js/dashboard.js"></script>
+
+    <!--NAVBAR LOADER + LOGOUT -->
+    <script>
+      fetch("./navbar.html")
+        .then((res) => {
+          if (!res.ok) throw new Error("Navbar failed to load");
+          return res.text();
+        })
+        .then((html) => {
+          document.getElementById("navbar-container").innerHTML = html;
+
+          /* ACTIVE DASHBOARD LINK */
+          document.querySelectorAll(".nav-link").forEach((link) => {
+            if (link.getAttribute("href") === "/frontend/dashboard.html") {
+              link.classList.add("active");
+            }
+          });
+
+          /* PROFILE DROPDOWN */
+          const profileToggle = document.getElementById("profileToggle");
+          const profileDropdown = document.getElementById("profileDropdown");
+
+          if (profileToggle && profileDropdown) {
+            profileToggle.addEventListener("click", (e) => {
+              e.stopPropagation();
+              profileDropdown.classList.toggle("open");
+            });
+
+            document.addEventListener("click", () => {
+              profileDropdown.classList.remove("open");
+            });
+
+            profileDropdown.addEventListener("click", (e) => {
+              e.stopPropagation();
+            });
+          }
+
+          /* LOGOUT  */
+          const logoutBtn = document.getElementById("logoutBtn");
+          if (logoutBtn) {
+            logoutBtn.addEventListener("click", () => {
+              if (!confirm("Logout from Karibu Groceries?")) return;
+              localStorage.removeItem("kglUser");
+              window.location.href = "./index.html";
+            });
+          }
+
+          /* MOBILE MENU */
+          const mobileToggle = document.getElementById("mobileMenuToggle");
+          const mobileNav = document.getElementById("mobileNavCollapse");
+
+          if (mobileToggle && mobileNav) {
+            mobileToggle.addEventListener("click", () => {
+              mobileNav.classList.toggle("open");
+            });
+          }
+        })
+        .catch((err) => console.error(err));
+    </script>
   </body>
 </html>

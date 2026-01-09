@@ -1,21 +1,27 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const user = JSON.parse(localStorage.getItem("kglUser") || "{}");
+  /* AUTH & SESSION GUARD */
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem("kglUser"));
+  } catch {
+    user = null;
+  }
 
   if (!user || !user.role) {
-    window.location.href = "./index.html";
+    window.location.href = "/index.html";
     return;
   }
 
   const role = user.role;
 
-  /* SAFE DOM HELPERS*/
+  /* SAFE DOM HELPERS */
   const $ = (id) => document.getElementById(id);
   const setText = (id, value) => {
     const el = $(id);
     if (el) el.textContent = value;
   };
 
-  /* ROLE VISIBILITY */
+  /* ROLE-BASED VISIBILITY */
   document.querySelectorAll("[class*='role-']").forEach((el) => {
     el.style.display = "none";
   });
@@ -24,12 +30,22 @@ document.addEventListener("DOMContentLoaded", () => {
     el.style.display = "";
   });
 
-  /* HEADER INFO */
-  setText("navUserName", user.username || "User");
-  setText("dropdownUserName", user.username || "User");
+  /* HEADER / NAV USER INFO */
+  const displayName =
+    user.displayName ||
+    (user.username
+      ? user.username.charAt(0).toUpperCase() + user.username.slice(1)
+      : "User");
+
+  setText("navUserName", displayName);
+  setText("dropdownUserName", displayName);
   setText("dropdownUserRole", role.charAt(0).toUpperCase() + role.slice(1));
-  setText("profileAvatar", (user.username || "U").charAt(0).toUpperCase());
-  setText("userBranch", user.branch || "—");
+  setText("profileAvatar", displayName.charAt(0).toUpperCase());
+
+  setText(
+    "userBranch",
+    user.branch ? user.branch.toUpperCase() : "All Branches",
+  );
 
   setText(
     "currentDate",
@@ -41,16 +57,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }),
   );
 
-  /* DATA LOADING */
+  /* LOAD DATA (SAFE) */
   const cashSales = JSON.parse(localStorage.getItem("kglSales") || "[]");
   const creditSales = JSON.parse(
     localStorage.getItem("kglCreditSales") || "[]",
   );
   const stock = JSON.parse(localStorage.getItem("kglStock") || "[]");
 
+  /* DATE HELPERS */
   const todayStr = new Date().toISOString().split("T")[0];
 
-  const parseDate = (val) => {
+  const normalizeDate = (val) => {
     if (!val) return null;
     const d = new Date(val);
     return isNaN(d) ? null : d.toISOString().split("T")[0];
@@ -61,27 +78,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
   cashSales.forEach((s) => {
     allSales.push({
-      date: s.date,
-      amount: s.amountPaid || 0,
-      tonnage: s.tonnageSold || 0,
+      date: normalizeDate(s.date),
+      amount: Number(s.amountPaid) || 0,
+      tonnage: Number(s.tonnageSold) || 0,
       produce: s.produceName || "Unknown",
     });
   });
 
   creditSales.forEach((s) => {
     allSales.push({
-      date: s.dispatchDate,
-      amount: s.amountDue || 0,
-      tonnage: s.tonnage || 0,
+      date: normalizeDate(s.dispatchDate),
+      amount: Number(s.amountDue) || 0,
+      tonnage: Number(s.tonnage) || 0,
       produce: s.produceName || "Unknown",
     });
   });
 
   /* DIRECTOR KPIs */
   if (role === "director") {
-    const totalCash = cashSales.reduce((s, x) => s + (x.amountPaid || 0), 0);
-    const totalCredit = creditSales.reduce((s, x) => s + (x.amountDue || 0), 0);
-    const totalStock = stock.reduce((s, i) => s + (i.tonnage || 0), 0);
+    const totalCash = cashSales.reduce(
+      (sum, s) => sum + (Number(s.amountPaid) || 0),
+      0,
+    );
+    const totalCredit = creditSales.reduce(
+      (sum, s) => sum + (Number(s.amountDue) || 0),
+      0,
+    );
+    const totalStock = stock.reduce(
+      (sum, i) => sum + (Number(i.tonnage) || 0),
+      0,
+    );
 
     setText("dirCashTotal", formatCurrency(totalCash));
     setText("dirCreditTotal", formatCurrency(totalCredit));
@@ -90,21 +116,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* MANAGER / SALES KPIs */
   if (role !== "director") {
-    const todaySales = allSales.filter((s) => parseDate(s.date) === todayStr);
+    const todaySales = allSales.filter((s) => s.date === todayStr);
 
-    const todayCash = todaySales.reduce((s, x) => s + x.amount, 0);
+    const todayTotal = todaySales.reduce((sum, s) => sum + s.amount, 0);
 
-    setText("cashToday", formatCurrency(todayCash));
+    setText("cashToday", formatCurrency(todayTotal));
     setText("todayTx", todaySales.length);
   }
 
   if (role === "manager") {
     const outstandingCredit = creditSales.reduce(
-      (s, x) => s + (x.amountDue || 0),
+      (sum, s) => sum + (Number(s.amountDue) || 0),
       0,
     );
 
-    const availableStock = stock.reduce((s, i) => s + (i.tonnage || 0), 0);
+    const availableStock = stock.reduce(
+      (sum, i) => sum + (Number(i.tonnage) || 0),
+      0,
+    );
 
     setText("creditTotal", formatCurrency(outstandingCredit));
     setText("stockTotal", `${availableStock.toLocaleString()} KG`);
@@ -114,6 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const produceTotals = {};
 
   allSales.forEach((s) => {
+    if (!s.produce) return;
     produceTotals[s.produce] = (produceTotals[s.produce] || 0) + s.tonnage;
   });
 
@@ -141,14 +171,14 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>`;
   }
 
-  /*LOW STOCK ALERTS (FIXED ID) */
+  /* LOW STOCK ALERTS */
   const lowStockContainer = $("lowStockContainer");
   const threshold = 2000;
 
   if (lowStockContainer) {
     const lowItems = stock
-      .filter((i) => (i.tonnage || 0) < threshold)
-      .sort((a, b) => (a.tonnage || 0) - (b.tonnage || 0));
+      .filter((i) => (Number(i.tonnage) || 0) < threshold)
+      .sort((a, b) => (Number(a.tonnage) || 0) - (Number(b.tonnage) || 0));
 
     lowStockContainer.innerHTML =
       lowItems.length === 0
@@ -159,9 +189,9 @@ document.addEventListener("DOMContentLoaded", () => {
               .map(
                 (i) => `
               <div class="list-group-item">
-                <strong>${i.produceName}</strong><br/>
+                <strong>${i.produceName || "Unknown"}</strong><br/>
                 <small class="text-warning">
-                  ${(i.tonnage || 0).toLocaleString()} KG remaining
+                  ${(Number(i.tonnage) || 0).toLocaleString()} KG remaining
                 </small>
               </div>`,
               )
@@ -169,18 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>`;
   }
 
-  /* LOGOUT (SAFE)*/
-  const logoutBtn = $("logoutBtn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      if (confirm("Logout from Karibu Groceries?")) {
-        localStorage.removeItem("kglUser");
-        window.location.href = "./index.html";
-      }
-    });
-  }
-
-  /* HELPERS*/
+  /* HELPERS */
   function formatCurrency(amount) {
     return new Intl.NumberFormat("en-UG", {
       style: "currency",

@@ -1,25 +1,51 @@
-// users.js - Director User Management (FINAL)
+// users.js — Director User Management
 
 document.addEventListener("DOMContentLoaded", () => {
-  const user = JSON.parse(localStorage.getItem("kglUser") || "{}");
+  /* AUTH & ROLE PROTECTION */
+  let currentUser = null;
+  try {
+    currentUser = JSON.parse(localStorage.getItem("kglUser"));
+  } catch {
+    currentUser = null;
+  }
 
-  /* ROLE PROTECTION */
-  if (!user || user.role !== "director") {
-    alert("Access denied. Director only.");
+  if (!currentUser || currentUser.role !== "director") {
+    alert("Access denied. Directors only.");
     window.location.href = "../../index.html";
     return;
   }
 
+  /* DOM REFERENCES */
   const usersList = document.getElementById("usersList");
   const userForm = document.getElementById("userForm");
   const modalTitle = document.getElementById("addUserModalLabel");
   const editUserId = document.getElementById("editUserId");
 
+  /* HELPERS */
+  const safeParse = (key, fallback = []) => {
+    try {
+      const data = JSON.parse(localStorage.getItem(key));
+      return Array.isArray(data) ? data : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
+  const capitalize = (text = "") =>
+    text.charAt(0).toUpperCase() + text.slice(1);
+
+  const roleLabel = (role) =>
+    ({
+      manager: "Manager",
+      sales: "Sales Agent",
+      director: "Director",
+    })[role] || capitalize(role);
+
   /* LOAD USERS */
   function loadUsers() {
-    const users = JSON.parse(localStorage.getItem("kglStaff") || "[]");
+    const users = safeParse("kglStaff");
 
-    if (!Array.isArray(users) || users.length === 0) {
+    if (users.length === 0) {
       usersList.innerHTML = `
         <div class="text-center text-muted py-5">
           <h4>No staff accounts found</h4>
@@ -31,24 +57,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     usersList.innerHTML = users
       .map((u, index) => {
-        const roleLabel = u.role === "manager" ? "Manager" : "Sales Agent";
-
         return `
           <div class="user-card mb-3">
             <div class="d-flex justify-content-between align-items-start">
               <div>
                 <h5 class="mb-1">${u.username}</h5>
                 <p class="mb-0">
-                  <span class="role-badge role-${u.role} me-2">${roleLabel}</span>
+                  <span class="role-badge role-${u.role} me-2">
+                    ${roleLabel(u.role)}
+                  </span>
                   <strong>Branch:</strong> ${capitalize(u.branch)}
                 </p>
               </div>
 
               <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-edit" onclick="editUser(${index})">
+                <button
+                  class="btn btn-sm btn-edit"
+                  onclick="editUser(${index})"
+                >
                   Edit
                 </button>
-                <button class="btn btn-sm btn-delete" onclick="deleteUser(${index})">
+                <button
+                  class="btn btn-sm btn-delete"
+                  onclick="deleteUser(${index})"
+                >
                   Delete
                 </button>
               </div>
@@ -79,10 +111,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    let users = JSON.parse(localStorage.getItem("kglStaff") || "[]");
+    let users = safeParse("kglStaff");
     const userId = editUserId.value;
 
-    // Prevent duplicate usernames
     const duplicate = users.find(
       (u, i) => u.username === username && i.toString() !== userId,
     );
@@ -92,13 +123,20 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const userData = { username, role, branch };
+    const userData = {
+      username,
+      role,
+      branch,
+      active: true,
+      createdAt: new Date().toISOString(),
+      createdBy: currentUser.username,
+    };
 
     if (userId === "") {
       users.push(userData);
     } else {
       if (!confirm("Save changes to this user?")) return;
-      users[userId] = userData;
+      users[userId] = { ...users[userId], ...userData };
     }
 
     localStorage.setItem("kglStaff", JSON.stringify(users));
@@ -114,8 +152,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* EDIT USER */
   window.editUser = function (index) {
-    const users = JSON.parse(localStorage.getItem("kglStaff") || "[]");
+    const users = safeParse("kglStaff");
     const u = users[index];
+    if (!u) return;
 
     document.getElementById("modalUsername").value = u.username;
     document.getElementById("modalRole").value = u.role;
@@ -127,20 +166,25 @@ document.addEventListener("DOMContentLoaded", () => {
     new bootstrap.Modal(document.getElementById("addUserModal")).show();
   };
 
-  /* DELETE USER */
+  /* DELETE USER (SAFE) */
   window.deleteUser = function (index) {
-    if (!confirm("Are you sure you want to delete this user?")) return;
+    const users = safeParse("kglStaff");
+    const u = users[index];
 
-    const users = JSON.parse(localStorage.getItem("kglStaff") || "[]");
+    if (!u) return;
+
+    if (u.username === currentUser.username) {
+      alert("You cannot delete your own account.");
+      return;
+    }
+
+    if (!confirm(`Delete user "${u.username}"?`)) return;
+
     users.splice(index, 1);
     localStorage.setItem("kglStaff", JSON.stringify(users));
     loadUsers();
   };
 
-  /* UTIL */
-  function capitalize(text) {
-    return text.charAt(0).toUpperCase() + text.slice(1);
-  }
-
+  /* INIT*/
   loadUsers();
 });

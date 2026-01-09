@@ -16,35 +16,57 @@
   </head>
 
   <body class="login-page">
-    <div class="container-fluid min-vh-100">
-      <div class="row min-vh-100">
-        <!--context panel-->
-        <div
-          class="col-lg-6 d-none d-lg-flex align-items-center justify-content-center login-brand-panel"
-        >
-          <!-- Blur Card -->
-          <div class="brand-glass text-center px-5 py-5">
-            <h1 class="brand-title mb-3">Karibu Groceries</h1>
+    <div
+      class="container-fluid min-vh-100 d-flex align-items-center justify-content-center p-3"
+    >
+      <div class="row w-100 g-0">
+        <!-- Brand Panel -->
+        <div class="col-lg-6 order-lg-1">
+          <!-- Desktop -->
+          <div
+            class="login-brand-panel d-none d-lg-flex align-items-center justify-content-center h-100"
+          >
+            <div class="brand-glass text-center px-5 py-5">
+              <img
+                src="./assets/images/karibu-logo.png"
+                alt="Karibu Groceries"
+                class="mb-4 img-fluid"
+                style="max-height: 120px; width: auto"
+              />
+              <p class="brand-subtitle mb-4">
+                Wholesale Produce Management System
+              </p>
+              <div class="brand-divider mx-auto mb-4"></div>
+              <p class="brand-note">
+                A secure internal platform for managing produce procurement,
+                sales, credit transactions, and stock across all branches.
+              </p>
+              <div class="brand-footnote mt-4">
+                Authorized staff access only
+              </div>
+            </div>
+          </div>
 
-            <p class="brand-subtitle mb-4">
+          <!-- Mobile -->
+          <div class="brand-mobile-card d-lg-none text-center text-white p-4">
+            <img
+              src="./assets/images/karibu-logo.png"
+              alt="Karibu Groceries"
+              class="mb-3 img-fluid"
+              style="max-height: 80px; width: auto"
+            />
+            <p class="brand-subtitle small opacity-90">
               Wholesale Produce Management System
             </p>
-
-            <div class="brand-divider mx-auto mb-4"></div>
-
-            <p class="brand-note">
-              A secure internal platform for managing produce procurement,
-              sales, credit transactions, and stock across all branches.
+            <p class="brand-note small mt-3 opacity-85">
+              Secure internal platform • Authorized staff only
             </p>
-
-            <div class="brand-footnote mt-4">Authorized staff access only</div>
           </div>
         </div>
 
-        <!--
-          LogIn panel-->
+        <!-- Login Panel -->
         <div
-          class="col-12 col-lg-6 d-flex align-items-center justify-content-center"
+          class="col-lg-6 col-12 order-lg-2 d-flex align-items-center justify-content-center"
         >
           <div class="login-card shadow-lg">
             <!-- Header -->
@@ -79,7 +101,7 @@
                 <label for="role">Role</label>
               </div>
 
-              <!-- Branch (auto-hidden for Director) -->
+              <!-- Branch -->
               <div class="form-floating mb-4" id="branchWrapper">
                 <select class="form-select form-select-lg" id="branch">
                   <option value="" disabled selected>Select branch</option>
@@ -89,7 +111,7 @@
                 <label for="branch">Branch</label>
               </div>
 
-              <!-- Helper Text -->
+              <!-- Helper -->
               <div class="login-hint mb-4 text-muted small">
                 Branch selection applies to managers and sales agents only.
               </div>

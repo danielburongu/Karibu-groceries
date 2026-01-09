@@ -15,34 +15,10 @@
     <link rel="stylesheet" href="../css/main.css" />
   </head>
   <body>
-    <!--NAVIGATION -->
-    <nav class="top-nav">
-      <div class="container">
-        <!-- Brand -->
-        <a href="../dashboard.html" class="nav-brand">
-          Karibu <span>Groceries</span>
-        </a>
+    <!-- Dynamic Navbar Placeholder -->
+    <div id="navbar-container"></div>
 
-        <!-- Navigation Links -->
-        <div class="nav-links d-none d-md-flex">
-          <a href="../dashboard.html" class="nav-link">Dashboard</a>
-          <a href="./sales-history.html" class="nav-link active">Sales</a>
-          <a href="./stock.html" class="nav-link role-manager">Stock</a>
-          <a href="./procurement.html" class="nav-link role-manager"
-            >Procurement</a
-          >
-        </div>
-
-        <!-- Actions -->
-        <div class="nav-actions">
-          <button id="logoutBtn" class="btn btn-outline-danger btn-sm">
-            Logout
-          </button>
-        </div>
-      </div>
-    </nav>
-
-    <!--PAGE HEADER-->
+    <!-- PAGE HEADER -->
     <header class="dashboard-header border-bottom">
       <div class="container">
         <h4 class="mb-1 fw-bold">Sales History</h4>
@@ -52,9 +28,9 @@
       </div>
     </header>
 
-    <!-- MAIN CONTENT-->
+    <!-- MAIN CONTENT -->
     <main class="container py-5">
-      <!-- DIRECTOR SUMMARY (READ-ONLY)-->
+      <!-- DIRECTOR SUMMARY (READ-ONLY) -->
       <section id="directorSummary" class="mb-5 d-none">
         <div class="row g-4">
           <div class="col-md-6 col-lg-3">
@@ -63,21 +39,18 @@
               <p class="summary-amount" id="totalCash">UGX 0</p>
             </div>
           </div>
-
           <div class="col-md-6 col-lg-3">
             <div class="summary-card info-card">
               <h5>Outstanding Credit</h5>
               <p class="summary-amount" id="totalCredit">UGX 0</p>
             </div>
           </div>
-
           <div class="col-md-6 col-lg-3">
             <div class="summary-card">
               <h5>Total Tonnage Sold</h5>
               <p class="summary-amount" id="totalTonnage">0 KG</p>
             </div>
           </div>
-
           <div class="col-md-6 col-lg-3">
             <div class="summary-card">
               <h5>Total Transactions</h5>
@@ -87,7 +60,7 @@
         </div>
       </section>
 
-      <!-- SALES TABLE (MANAGER + SALES)-->
+      <!-- SALES TABLE (MANAGER + SALES) -->
       <section id="salesTableSection" class="d-none">
         <!-- ACTION BAR -->
         <div
@@ -101,18 +74,10 @@
           </div>
 
           <div class="d-flex gap-2 flex-wrap">
-            <a
-              id="cashBtn"
-              href="./cash-sale.html"
-              class="btn btn-outline-success"
-            >
+            <a href="./cash-sale.html" class="btn btn-outline-success">
               Record Cash Sale
             </a>
-            <a
-              id="creditBtn"
-              href="./credit-sale.html"
-              class="btn btn-outline-warning"
-            >
+            <a href="./credit-sale.html" class="btn btn-outline-warning">
               Record Credit Sale
             </a>
             <button id="exportCsvBtn" class="btn btn-success">
@@ -150,7 +115,7 @@
         <div class="card table-card">
           <div class="table-header">
             <h4>Sales Records</h4>
-            <span id="recordCount" class="table-meta"> 0 records </span>
+            <span id="recordCount" class="table-meta">0 records</span>
           </div>
 
           <div class="table-responsive">
@@ -171,7 +136,6 @@
             </table>
           </div>
 
-          <!-- EMPTY STATE (ENHANCED) -->
           <div id="emptyState" class="empty-state d-none">
             <h5 class="mb-1">No sales recorded yet</h5>
             <p class="mb-0">
@@ -183,8 +147,60 @@
       </section>
     </main>
 
-    <!--SCRIPTS-->
+    <!-- SCRIPTS -->
     <script src="../js/auth.js"></script>
     <script src="../js/sales/salesHistory.js"></script>
+
+    <!-- Load Navbar -->
+    <script>
+      fetch("../navbar.html")
+        .then((response) => {
+          if (!response.ok) {
+            console.error(
+              "Navbar not found or failed to load:",
+              response.status,
+            );
+            return;
+          }
+          return response.text();
+        })
+        .then((data) => {
+          document.getElementById("navbar-container").innerHTML = data;
+
+          // Automatically highlight the current page link
+          const currentPage = location.pathname.split("/").pop();
+          document.querySelectorAll(".nav-links .nav-link").forEach((link) => {
+            const linkHref = link.getAttribute("href");
+            const linkPage = linkHref.split("/").pop();
+            if (linkPage === currentPage || linkHref.endsWith(currentPage)) {
+              link.classList.add("active");
+            }
+          });
+
+          // Initialize profile dropdown functionality
+          const profileToggle = document.getElementById("profileToggle");
+          const profileDropdown = document.getElementById("profileDropdown");
+
+          if (profileToggle && profileDropdown) {
+            profileToggle.addEventListener("click", (e) => {
+              e.stopPropagation();
+              profileDropdown.classList.toggle("open");
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener("click", () => {
+              profileDropdown.classList.remove("open");
+            });
+
+            // Prevent dropdown from closing when clicking inside it
+            profileDropdown.addEventListener("click", (e) => {
+              e.stopPropagation();
+            });
+          }
+        })
+        .catch((err) => {
+          console.error("Error loading navbar:", err);
+        });
+    </script>
   </body>
 </html>

@@ -1,0 +1,187 @@
+<!-- navbar.html -->
+<nav class="top-nav">
+  <div class="container nav-inner">
+    <!-- Brand -->
+    <a
+      href="/frontend/dashboard.html"
+      class="nav-brand d-flex align-items-center gap-3"
+    >
+      <img
+        src="/frontend/assets/images/karibu-logo.png"
+        alt="Karibu Groceries"
+        class="nav-logo"
+      />
+      <span class="brand-text d-none d-md-inline">
+        Karibu <span>Groceries</span>
+      </span>
+    </a>
+
+    <!-- Desktop Navigation -->
+    <div class="nav-links d-none d-md-flex">
+      <a href="/frontend/dashboard.html" class="nav-link">Dashboard</a>
+
+      <a
+        href="/frontend/pages/sales-history.html"
+        class="nav-link role-sales role-manager"
+      >
+        Sales
+      </a>
+
+      <a href="/frontend/pages/stock.html" class="nav-link role-manager">
+        Stock
+      </a>
+
+      <a href="/frontend/pages/procurement.html" class="nav-link role-manager">
+        Procurement
+      </a>
+
+      <a
+        href="/frontend/pages/director/dashboard.html"
+        class="nav-link role-director"
+      >
+        Director Panel
+      </a>
+
+      <a
+        href="/frontend/pages/director/users.html"
+        class="nav-link role-director"
+      >
+        Users
+      </a>
+    </div>
+
+    <!-- Profile / Actions -->
+    <div class="nav-actions">
+      <div class="profile-menu">
+        <button
+          class="profile-trigger"
+          id="profileToggle"
+          aria-label="User menu"
+        >
+          <div class="profile-avatar" id="profileAvatar">U</div>
+          <span id="navUserName" class="d-none d-sm-inline">User</span>
+        </button>
+
+        <div class="profile-dropdown" id="profileDropdown">
+          <div class="profile-dropdown-header">
+            <strong id="dropdownUserName">User</strong>
+            <small id="dropdownUserRole">Role</small>
+          </div>
+          <button id="logoutBtn" class="w-100">Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Toggle -->
+    <button
+      class="nav-toggle d-md-none"
+      id="mobileMenuToggle"
+      aria-label="Toggle menu"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+
+  <!-- Mobile Navigation -->
+  <div class="mobile-nav-collapse" id="mobileNavCollapse">
+    <div class="mobile-nav-links">
+      <a href="/frontend/dashboard.html" class="mobile-nav-link">Dashboard</a>
+
+      <a
+        href="/frontend/pages/sales-history.html"
+        class="mobile-nav-link role-sales role-manager"
+      >
+        Sales
+      </a>
+
+      <a href="/frontend/pages/stock.html" class="mobile-nav-link role-manager">
+        Stock
+      </a>
+
+      <a
+        href="/frontend/pages/procurement.html"
+        class="mobile-nav-link role-manager"
+      >
+        Procurement
+      </a>
+
+      <a
+        href="/frontend/pages/director/dashboard.html"
+        class="mobile-nav-link role-director"
+      >
+        Director Panel
+      </a>
+
+      <a
+        href="/frontend/pages/director/users.html"
+        class="mobile-nav-link role-director"
+      >
+        Users
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- NAVBAR LOGIC -->
+<script>
+  (function () {
+    let user = null;
+
+    try {
+      user = JSON.parse(localStorage.getItem("kglUser"));
+    } catch {
+      user = null;
+    }
+
+    if (!user || !user.role) return;
+
+    /* ---- USER INFO ---- */
+    const setText = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    };
+
+    setText("navUserName", user.displayName || user.username);
+    setText("dropdownUserName", user.displayName || user.username);
+    setText(
+      "dropdownUserRole",
+      user.role.charAt(0).toUpperCase() + user.role.slice(1),
+    );
+    setText(
+      "profileAvatar",
+      (user.displayName || user.username || "U").charAt(0),
+    );
+
+    /* ---- ROLE VISIBILITY ---- */
+    document.querySelectorAll("[class*='role-']").forEach((el) => {
+      const roles = [...el.classList].filter((c) => c.startsWith("role-"));
+      const allowed = roles.includes(`role-${user.role}`);
+      el.style.display = allowed ? "" : "none";
+    });
+
+    /* ---- DROPDOWN ---- */
+    const toggle = document.getElementById("profileToggle");
+    const dropdown = document.getElementById("profileDropdown");
+
+    toggle?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown?.classList.toggle("open");
+    });
+
+    document.addEventListener("click", () => {
+      dropdown?.classList.remove("open");
+    });
+
+    dropdown?.addEventListener("click", (e) => e.stopPropagation());
+
+    /* ---- LOGOUT ---- */
+    const logoutBtn = document.getElementById("logoutBtn");
+    logoutBtn?.addEventListener("click", () => {
+      if (!confirm("Logout from Karibu Groceries?")) return;
+      localStorage.removeItem("kglUser");
+      window.location.href = "/frontend/index.html";
+    });
+  })();
+</script>

@@ -1,31 +1,36 @@
-// auth.js - Authentication & Session Management (GLOBAL)
+// auth.js — Authentication & Role Handling
 
-/* DOM READY */
 document.addEventListener("DOMContentLoaded", () => {
+  /* SAFE USER LOAD */
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem("kglUser"));
+  } catch {
+    user = null;
+  }
+
   const loginForm = document.getElementById("loginForm");
   const roleSelect = document.getElementById("role");
   const branchSelect = document.getElementById("branch");
 
-  const storedUser = JSON.parse(localStorage.getItem("kglUser"));
-
   /* LOGIN PAGE LOGIC */
   if (loginForm) {
-    /* ROLE → BRANCH VISIBILITY */
     if (roleSelect && branchSelect) {
       roleSelect.addEventListener("change", () => {
+        const wrapper = branchSelect.closest(".form-floating");
+
         if (roleSelect.value === "director") {
           branchSelect.value = "";
           branchSelect.disabled = true;
-          branchSelect.closest(".form-floating").style.display = "none";
+          if (wrapper) wrapper.style.display = "none";
         } else {
           branchSelect.disabled = false;
-          branchSelect.closest(".form-floating").style.display = "block";
+          if (wrapper) wrapper.style.display = "block";
         }
       });
     }
 
-    /* LOGIN SUBMISSION */
-    loginForm.addEventListener("submit", function (e) {
+    loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
 
       const username = document
@@ -36,120 +41,123 @@ document.addEventListener("DOMContentLoaded", () => {
       const role = roleSelect?.value;
       const branch = branchSelect?.value || null;
 
-      /* VALIDATION */
       if (username.length < 3) {
-        showAlert("Username must be at least 3 characters long.", "danger");
+        showAlert("Username must be at least 3 characters long.");
         return;
       }
 
       if (!role) {
-        showAlert("Please select your role.", "danger");
+        showAlert("Please select your role.");
         return;
       }
 
       if (role !== "director" && !branch) {
-        showAlert("Please select your branch.", "danger");
+        showAlert("Please select your branch.");
         return;
       }
 
-      /* CREATE SESSION */
-      const userSession = {
+      const session = {
         username,
         displayName: username.charAt(0).toUpperCase() + username.slice(1),
-        role, // director | manager | sales
+        role,
         branch: role === "director" ? null : branch,
         loginTime: new Date().toISOString(),
       };
 
-      localStorage.setItem("kglUser", JSON.stringify(userSession));
-      console.log("Login successful:", userSession);
-
-      setTimeout(() => {
-        window.location.href = "./dashboard.html";
-      }, 300);
+      localStorage.setItem("kglUser", JSON.stringify(session));
+      window.location.href = "./dashboard.html";
     });
 
-    /* ALERT HELPER */
-    function showAlert(message, type = "danger") {
+    function showAlert(message) {
       const existing = document.querySelector(".alert");
       if (existing) existing.remove();
 
-      const alertDiv = document.createElement("div");
-      alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-4 mb-0`;
-      alertDiv.innerHTML = `
-        <strong>${type === "danger" ? "Error" : "Success"}:</strong> ${message}
+      const alert = document.createElement("div");
+      alert.className =
+        "alert alert-danger alert-dismissible fade show mt-4 mb-0";
+      alert.innerHTML = `
+        <strong>Error:</strong> ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
       `;
-
-      loginForm.parentElement.insertBefore(alertDiv, loginForm);
+      loginForm.parentElement.insertBefore(alert, loginForm);
     }
 
-    return;
+    return; // stop auth.js here on login page
   }
 
-  /* PROTECTED PAGES (DASHBOARD, ETC.)*/
-  if (!storedUser) {
+  /* PROTECTED PAGE GUARD */
+  if (!user || !user.role) {
     window.location.href = "./index.html";
     return;
   }
 
-  /* NAVBAR USER DATA */
-  const navUserName = document.getElementById("navUserName");
-  const dropdownUserName = document.getElementById("dropdownUserName");
-  const dropdownUserRole = document.getElementById("dropdownUserRole");
-  const profileAvatar = document.getElementById("profileAvatar");
-  const userBranch = document.getElementById("userBranch");
+  /* 
+     <body data-role="director">
+     <body data-roles="manager,sales">
+   */
+  const singleRole = document.body.dataset.role;
+  const multipleRoles = document.body.dataset.roles;
 
-  if (navUserName) navUserName.textContent = storedUser.displayName;
-  if (dropdownUserName) dropdownUserName.textContent = storedUser.displayName;
-  if (dropdownUserRole)
-    dropdownUserRole.textContent =
-      storedUser.role.charAt(0).toUpperCase() + storedUser.role.slice(1);
+  if (singleRole && user.role !== singleRole) {
+    alert("Access denied.");
+    window.location.href = "./dashboard.html";
+    return;
+  }
 
-  if (profileAvatar)
-    profileAvatar.textContent = storedUser.displayName.charAt(0);
+  if (multipleRoles) {
+    const allowed = multipleRoles.split(",").map((r) => r.trim());
+    if (!allowed.includes(user.role)) {
+      alert("Access denied.");
+      window.location.href = "./dashboard.html";
+      return;
+    }
+  }
 
-  if (userBranch)
-    userBranch.textContent = storedUser.branch
-      ? storedUser.branch.toUpperCase()
+  /* USER INFO  */
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  setText("navUserName", user.displayName);
+  setText("dropdownUserName", user.displayName);
+  setText(
+    "dropdownUserRole",
+    user.role.charAt(0).toUpperCase() + user.role.slice(1),
+  );
+  setText("profileAvatar", user.displayName.charAt(0).toUpperCase());
+
+  const branchEl = document.getElementById("userBranch");
+  if (branchEl) {
+    branchEl.textContent = user.branch
+      ? user.branch.toUpperCase()
       : "All Branches";
-
-  /* PROFILE DROPDOWN */
-  const profileToggle = document.getElementById("profileToggle");
-  const profileDropdown = document.getElementById("profileDropdown");
-
-  if (profileToggle && profileDropdown) {
-    profileToggle.addEventListener("click", (e) => {
-      e.stopPropagation();
-      profileDropdown.classList.toggle("open");
-    });
-
-    document.addEventListener("click", () => {
-      profileDropdown.classList.remove("open");
-    });
   }
 
-  /* LOGOUT (GLOBAL) */
-  const logoutBtn = document.getElementById("logoutBtn");
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      const confirmLogout = confirm("Are you sure you want to logout?");
-      if (!confirmLogout) return;
-
-      localStorage.removeItem("kglUser");
-      window.location.href = "./index.html";
-    });
-  }
-
-  /* DATE DISPLAY */
-  const currentDate = document.getElementById("currentDate");
-  if (currentDate) {
-    currentDate.textContent = new Date().toLocaleDateString(undefined, {
+  const dateEl = document.getElementById("currentDate");
+  if (dateEl) {
+    dateEl.textContent = new Date().toLocaleDateString("en-GB", {
       weekday: "short",
-      year: "numeric",
-      month: "short",
       day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   }
+
+  /* ROLE-BASED VISIBILITY */
+  applyRoleVisibility(user.role);
 });
+
+/* ROLE VISIBILITY  */
+function applyRoleVisibility(role) {
+  const map = {
+    director: ["role-director"],
+    manager: ["role-manager"],
+    sales: ["role-sales"],
+  };
+
+  document.querySelectorAll("[class*='role-']").forEach((el) => {
+    const allowed = map[role]?.some((cls) => el.classList.contains(cls));
+    el.style.display = allowed ? "" : "none";
+  });
+}

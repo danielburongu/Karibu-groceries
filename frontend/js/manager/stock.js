@@ -1,12 +1,20 @@
-const user = JSON.parse(localStorage.getItem("kglUser") || "{}");
+// stock.js — Stock Management (Manager Only)
 
-// ROLE PROTECTION
-if (!user || user.role !== "manager") {
-  alert("Access denied. Manager only.");
-  window.location.href = "../index.html";
+/* AUTH & ROLE PROTECTION */
+let user = null;
+try {
+  user = JSON.parse(localStorage.getItem("kglUser"));
+} catch {
+  user = null;
 }
 
-// DOM
+if (!user || user.role !== "manager") {
+  alert("Access denied. Manager only.");
+  window.location.href = "/index.html";
+  throw new Error("Unauthorized access");
+}
+
+/* DOM REFERENCES */
 const tableBody = document.getElementById("stockTableBody");
 const emptyState = document.getElementById("emptyState");
 
@@ -18,10 +26,12 @@ const outStockCountEl = document.getElementById("outStockCount");
 const searchInput = document.getElementById("searchInput");
 const statusFilter = document.getElementById("statusFilter");
 
-// DATA
-const stock = JSON.parse(localStorage.getItem("kglStock") || "[]");
+/* LOAD & FILTER STOCK (BRANCH) */
+let allStock = JSON.parse(localStorage.getItem("kglStock") || "[]");
 
-// RENDER
+let stock = allStock.filter((item) => item.branch === user.branch);
+
+/* RENDER STOCK TABLE */
 function renderStock(data) {
   tableBody.innerHTML = "";
 
@@ -43,19 +53,21 @@ function renderStock(data) {
     row.innerHTML = `
       <td>${item.produceName}</td>
       <td>${item.produceType}</td>
-      <td>${item.branch}</td>
-      <td class="text-end">${item.tonnage}</td>
-      <td class="text-end">UGX ${item.sellingPrice}</td>
-      <td><span class="status-badge status-${status}">
-        ${status === "out" ? "Out" : status === "low" ? "Low" : "Available"}
-      </span></td>
+      <td>${capitalize(item.branch)}</td>
+      <td class="text-end">${item.tonnage.toLocaleString()}</td>
+      <td class="text-end">${formatCurrency(item.sellingPrice)}</td>
+      <td>
+        <span class="status-badge status-${status}">
+          ${status === "out" ? "Out" : status === "low" ? "Low" : "Available"}
+        </span>
+      </td>
     `;
 
     tableBody.appendChild(row);
   });
 }
 
-// KPIs
+/* KPIs*/
 function updateKPIs() {
   let totalKG = 0;
   let low = 0;
@@ -63,21 +75,23 @@ function updateKPIs() {
 
   stock.forEach((item) => {
     totalKG += item.tonnage;
+
     if (item.tonnage <= 0) out++;
     else if (item.tonnage <= 500) low++;
   });
 
-  totalTonnageEl.textContent = `${totalKG} KG`;
+  totalTonnageEl.textContent = `${totalKG.toLocaleString()} KG`;
   totalItemsEl.textContent = stock.length;
   lowStockCountEl.textContent = low;
   outStockCountEl.textContent = out;
 
+  // Soft warning (only once per load)
   if (out > 0) {
-    alert(" Stock Alert: Some items are out of stock.");
+    console.warn("Stock Alert: Some items are out of stock.");
   }
 }
 
-// FILTERS
+/* FILTERS */
 function applyFilters() {
   const term = searchInput.value.toLowerCase();
   const status = statusFilter.value;
@@ -85,7 +99,7 @@ function applyFilters() {
   const filtered = stock.filter((item) => {
     const matchesSearch =
       item.produceName.toLowerCase().includes(term) ||
-      item.branch.toLowerCase().includes(term);
+      item.produceType.toLowerCase().includes(term);
 
     let itemStatus = "available";
     if (item.tonnage <= 0) itemStatus = "out";
@@ -99,10 +113,31 @@ function applyFilters() {
   renderStock(filtered);
 }
 
-// EVENTS
-searchInput.addEventListener("input", applyFilters);
-statusFilter.addEventListener("change", applyFilters);
+/* EVENTS */
+searchInput?.addEventListener("input", applyFilters);
+statusFilter?.addEventListener("change", applyFilters);
 
-// INIT
+/* SESSION EXPIRY HANDLING */
+window.addEventListener("storage", (e) => {
+  if (e.key === "kglUser" && !e.newValue) {
+    alert("Session expired. Please login again.");
+    window.location.href = "/index.html";
+  }
+});
+
+/* HELPERS */
+function formatCurrency(amount) {
+  return new Intl.NumberFormat("en-UG", {
+    style: "currency",
+    currency: "UGX",
+    minimumFractionDigits: 0,
+  }).format(amount || 0);
+}
+
+function capitalize(text) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/* INIT */
 renderStock(stock);
 updateKPIs();

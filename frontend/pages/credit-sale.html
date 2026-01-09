@@ -11,44 +11,16 @@
       rel="stylesheet"
     />
 
-    <!-- Main System Styles -->
+    <!-- Main Styles -->
     <link rel="stylesheet" href="../css/main.css" />
   </head>
-  <body>
-    <!--TOP NAVIGATION -->
-    <nav class="top-nav">
-      <div class="container">
-        <a href="../dashboard.html" class="nav-brand">
-          Karibu <span>Groceries</span>
-        </a>
 
-        <div class="nav-links d-none d-md-flex">
-          <a href="../dashboard.html" class="nav-link">Dashboard</a>
-          <a href="./cash-sale.html" class="nav-link">Cash Sale</a>
-          <a href="./sales-history.html" class="nav-link">Sales History</a>
-          <a href="./credit-sale.html" class="nav-link active">Credit Sales</a>
-        </div>
+  <!-- Sales only -->
+  <body data-role="sales">
+    <!-- Dynamic Navbar -->
+    <div id="navbar-container"></div>
 
-        <div class="nav-actions">
-          <div class="profile-menu">
-            <button class="profile-trigger" id="profileToggle">
-              <div class="profile-avatar" id="profileAvatar">U</div>
-              <span id="navUserName">User</span>
-            </button>
-
-            <div class="profile-dropdown" id="profileDropdown">
-              <div class="profile-dropdown-header">
-                <strong id="dropdownUserName">User</strong>
-                <small id="dropdownUserRole">Role</small>
-              </div>
-              <button id="logoutBtn">Logout</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
-
-    <!--PAGE HEADER-->
+    <!-- PAGE HEADER -->
     <header class="dashboard-header">
       <div class="container">
         <h2 class="mb-1 fw-bold">Credit / Deferred Sales</h2>
@@ -58,7 +30,7 @@
       </div>
     </header>
 
-    <!--MAIN CONTENT -->
+    <!-- MAIN CONTENT -->
     <main class="container py-5">
       <div class="row justify-content-center">
         <div class="col-lg-10 col-xl-8">
@@ -76,48 +48,28 @@
                 <div class="row g-4 mb-4">
                   <div class="col-md-6">
                     <div class="form-floating">
-                      <input
-                        class="form-control"
-                        id="buyerName"
-                        placeholder="Buyer Name"
-                        required
-                      />
+                      <input class="form-control" id="buyerName" required />
                       <label>Buyer Name</label>
                     </div>
                   </div>
 
                   <div class="col-md-6">
                     <div class="form-floating">
-                      <input
-                        class="form-control"
-                        id="contact"
-                        placeholder="07XXXXXXXX"
-                        required
-                      />
+                      <input class="form-control" id="contact" required />
                       <label>Contact Number</label>
                     </div>
                   </div>
 
                   <div class="col-md-6">
                     <div class="form-floating">
-                      <input
-                        class="form-control"
-                        id="nin"
-                        placeholder="CMXXXXXXXXXXXX"
-                        required
-                      />
+                      <input class="form-control" id="nin" required />
                       <label>National ID (NIN)</label>
                     </div>
                   </div>
 
                   <div class="col-md-6">
                     <div class="form-floating">
-                      <input
-                        class="form-control"
-                        id="location"
-                        placeholder="Location"
-                        required
-                      />
+                      <input class="form-control" id="location" required />
                       <label>Location</label>
                     </div>
                   </div>
@@ -125,9 +77,6 @@
 
                 <!-- PRODUCE & STOCK -->
                 <h4 class="section-title">Produce & Stock</h4>
-                <p class="page-subtitle mb-3">
-                  Select produce and verify available stock.
-                </p>
 
                 <div class="row g-4 mb-4">
                   <div class="col-md-6">
@@ -169,9 +118,6 @@
 
                 <!-- DISPATCH & PAYMENT -->
                 <h4 class="section-title">Dispatch & Payment</h4>
-                <p class="page-subtitle mb-3">
-                  Define quantities, due date, and responsible sales agent.
-                </p>
 
                 <div class="row g-4 mb-5">
                   <div class="col-md-6">
@@ -239,27 +185,14 @@
     <script src="../js/auth.js"></script>
     <script src="../js/sales/creditSale.js"></script>
 
+    <!-- Load Shared Navbar -->
     <script>
-      // Profile dropdown toggle
-      const profileToggle = document.getElementById("profileToggle");
-      const profileDropdown = document.getElementById("profileDropdown");
-
-      profileToggle?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        profileDropdown.classList.toggle("open");
-      });
-
-      document.addEventListener("click", () => {
-        profileDropdown?.classList.remove("open");
-      });
-
-      // Logout
-      document.getElementById("logoutBtn")?.addEventListener("click", () => {
-        if (confirm("Logout from Karibu Groceries?")) {
-          localStorage.removeItem("kglUser");
-          window.location.href = "../index.html";
-        }
-      });
+      fetch("../navbar.html")
+        .then((res) => res.text())
+        .then((html) => {
+          document.getElementById("navbar-container").innerHTML = html;
+        })
+        .catch((err) => console.error("Error loading navbar:", err));
     </script>
   </body>
 </html>

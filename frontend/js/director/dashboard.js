@@ -1,55 +1,63 @@
+// director/dashboard.js — Director Analytics (READ-ONLY)
+
+/* AUTH & ROLE PROTECTION */
 const user = JSON.parse(localStorage.getItem("kglUser") || "{}");
 
-// ROLE PROTECTION
 if (!user || user.role !== "director") {
-  alert("Access denied. Director only.");
+  alert("Access denied. Directors only.");
   window.location.href = "../../index.html";
+  throw new Error("Unauthorized access");
 }
 
-// LOGOUT
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  localStorage.removeItem("kglUser");
-  window.location.href = "../../index.html";
-});
+/* LOAD SALES DATA (SAFE) */
+const allSales = JSON.parse(localStorage.getItem("kglSales") || "[]");
 
-// LOAD DATA
-const cashSales = JSON.parse(localStorage.getItem("kglSales") || "[]");
-const creditSales = JSON.parse(localStorage.getItem("kglCreditSales") || "[]");
+/* Separate by type */
+const cashSales = allSales.filter((s) => s.type === "cash");
+const creditSales = allSales.filter((s) => s.type === "credit");
 
-// GLOBAL TOTALS
-const totalRevenue = cashSales.reduce((s, x) => s + (x.amountPaid || 0), 0);
-const totalCredit = creditSales.reduce((s, x) => s + (x.amountDue || 0), 0);
+/* GLOBAL TOTALS */
+const totalRevenue = cashSales.reduce((sum, s) => sum + (s.amountPaid || 0), 0);
+
+const totalCredit = creditSales.reduce((sum, s) => sum + (s.amountDue || 0), 0);
+
 const totalTonnage =
   cashSales.reduce((s, x) => s + (x.tonnageSold || 0), 0) +
-  creditSales.reduce((s, x) => s + (x.tonnage || 0), 0);
+  creditSales.reduce((s, x) => s + (x.tonnageSold || 0), 0);
 
+/* UPDATE KPI UI */
 document.getElementById("totalRevenue").textContent =
   formatCurrency(totalRevenue);
+
 document.getElementById("totalCredit").textContent =
   formatCurrency(totalCredit);
-document.getElementById("totalTonnage").textContent = `${totalTonnage} KG`;
+
+document.getElementById("totalTonnage").textContent =
+  `${totalTonnage.toLocaleString()} KG`;
+
 document.getElementById("totalTransactions").textContent =
   cashSales.length + creditSales.length;
 
-// BRANCH SUMMARY
+/* BRANCH SUMMARY */
 const branches = {};
 
-cashSales.forEach((s) => {
-  if (!branches[s.branch]) {
-    branches[s.branch] = { cash: 0, credit: 0, kg: 0 };
+allSales.forEach((sale) => {
+  if (!branches[sale.branch]) {
+    branches[sale.branch] = { cash: 0, credit: 0, kg: 0 };
   }
-  branches[s.branch].cash += s.amountPaid || 0;
-  branches[s.branch].kg += s.tonnageSold || 0;
+
+  if (sale.type === "cash") {
+    branches[sale.branch].cash += sale.amountPaid || 0;
+    branches[sale.branch].kg += sale.tonnageSold || 0;
+  }
+
+  if (sale.type === "credit") {
+    branches[sale.branch].credit += sale.amountDue || 0;
+    branches[sale.branch].kg += sale.tonnageSold || 0;
+  }
 });
 
-creditSales.forEach((s) => {
-  if (!branches[s.branch]) {
-    branches[s.branch] = { cash: 0, credit: 0, kg: 0 };
-  }
-  branches[s.branch].credit += s.amountDue || 0;
-  branches[s.branch].kg += s.tonnage || 0;
-});
-
+/* RENDER TABLE */
 const tbody = document.getElementById("branchSummaryTable");
 tbody.innerHTML = "";
 
@@ -64,15 +72,15 @@ Object.entries(branches).forEach(([branch, data]) => {
   `;
 });
 
-// HELPERS
+/* HELPERS */
 function formatCurrency(amount) {
   return new Intl.NumberFormat("en-UG", {
     style: "currency",
     currency: "UGX",
     minimumFractionDigits: 0,
-  }).format(amount);
+  }).format(amount || 0);
 }
 
-function capitalize(text) {
+function capitalize(text = "") {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }

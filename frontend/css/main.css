@@ -1,27 +1,23 @@
-/* Google Font */
+/*GOOGLE FONT */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap");
 
-/* CSS VARIABLES  */
+/* CSS VARIABLES */
 :root {
-  /* Brand */
   --primary: #ff7043;
   --dark: #263238;
   --muted: #78889b;
 
-  /* Surfaces */
   --bg-main: #f8fafc;
   --bg-surface: #ffffff;
   --bg-header: #f1f5f9;
 
-  /* Borders */
   --border: #e2e8f0;
 
-  /* Shadows */
   --shadow-soft: 0 6px 18px rgba(0, 0, 0, 0.06);
   --shadow-medium: 0 14px 32px rgba(0, 0, 0, 0.08);
 }
 
-/* BASE */
+/* BASE STYLES */
 body {
   background-color: var(--bg-main);
   min-height: 100vh;
@@ -45,26 +41,36 @@ body {
   z-index: 1200;
 }
 
-.top-nav .container {
+.top-nav .container,
+.top-nav .nav-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
 }
 
-/* BRAND COLOR (BLACK) */
+/* BRAND / LOGO */
 .nav-brand {
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.4rem;
   text-decoration: none;
-}
-
-.nav-brand span {
   color: var(--dark);
   font-weight: 700;
 }
 
-/* Nav links */
+.nav-brand .nav-logo {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+}
+
+.nav-brand .brand-text span {
+  font-weight: 500;
+}
+
+/* DESKTOP NAV LINKS */
 .nav-links {
   display: flex;
   gap: 0.4rem;
@@ -92,7 +98,7 @@ body {
   font-weight: 600;
 }
 
-/* Profile menu */
+/* PROFILE MENU */
 .profile-menu {
   position: relative;
 }
@@ -123,7 +129,6 @@ body {
   font-size: 0.75rem;
 }
 
-/* Profile dropdown */
 .profile-dropdown {
   position: absolute;
   right: 0;
@@ -148,7 +153,6 @@ body {
 
 .profile-dropdown-header strong {
   font-size: 0.88rem;
-  color: var(--dark);
 }
 
 .profile-dropdown-header small {
@@ -172,7 +176,50 @@ body {
   color: var(--dark);
 }
 
-/* Page header */
+/* MOBILE NAVIGATION */
+.nav-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: none;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--dark);
+  margin: 5px 0;
+}
+
+.mobile-nav-collapse {
+  position: absolute;
+  top: 64px;
+  left: 0;
+  width: 100%;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border);
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.mobile-nav-collapse.open {
+  max-height: 500px;
+}
+
+.mobile-nav-link {
+  display: block;
+  padding: 0.85rem 1.5rem;
+  color: var(--dark);
+  text-decoration: none;
+}
+
+.mobile-nav-link:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* PAGE HEADER */
 .dashboard-header {
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
@@ -184,12 +231,11 @@ body {
   font-size: 0.85rem;
 }
 
-/* Sections */
+/* CARDS & SECTIONS */
 section {
   margin-bottom: 3rem;
 }
 
-/* Cards */
 .card {
   background: var(--bg-surface);
   border-radius: 1rem;
@@ -201,71 +247,40 @@ section {
   padding: 1.75rem;
 }
 
-.card-header {
-  background: transparent;
-  border-bottom: 1px solid var(--border);
-  padding: 1.1rem 1.75rem;
-}
-
-/* Table header */
 .table-header {
   padding: 1.15rem 1.75rem;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  align-items: center;
 }
 
-.table-header h3 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin-bottom: 0.15rem;
-  line-height: 1.3;
-}
-
-.table-header small {
-  font-size: 0.78rem;
-  color: var(--muted);
-}
-
-/* Summary cards */
 .summary-card {
-  background: var(--bg-surface);
-  border-radius: 1rem;
   padding: 1.6rem 1.5rem;
+  border-radius: 1rem;
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-soft);
-  height: 100%;
 }
 
 .summary-card h5 {
   font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--muted);
-  margin-bottom: 0.5rem;
-  font-weight: 600;
 }
 
 .summary-amount {
   font-size: 1.9rem;
   font-weight: 800;
-  color: var(--dark);
-  margin: 0;
 }
 
-/* Status badges */
+/* STATUS BADGES */
 .status-badge {
   padding: 0.25rem 0.6rem;
   border-radius: 999px;
   font-size: 0.7rem;
   font-weight: 600;
-  line-height: 1;
 }
 
 .status-available {
   background: rgba(38, 50, 56, 0.08);
-  color: var(--dark);
 }
 
 .status-low {
@@ -275,33 +290,9 @@ section {
 
 .status-out {
   background: rgba(0, 0, 0, 0.08);
-  color: var(--dark);
 }
 
-/* lists and empty states */
-.list-group-flush .list-group-item {
-  padding: 0.85rem 0;
-  border-left: 0;
-  border-right: 0;
-}
-
-.empty-state {
-  padding: 2.25rem;
-  text-align: center;
-  color: var(--muted);
-  font-style: italic;
-  font-size: 0.9rem;
-}
-
-/* Section titles*/
-.section-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--dark);
-  margin-bottom: 0.75rem;
-}
-
-/* Buttons */
+/* BUTTONS */
 .btn-primary,
 .btn-success {
   background-color: var(--primary);
@@ -312,4 +303,29 @@ section {
 .btn-success:hover {
   background-color: #f45c2e;
   border-color: #f45c2e;
+}
+
+/* RESPONSIVE */
+@media (max-width: 767.98px) {
+  .nav-links {
+    display: none;
+  }
+
+  .nav-toggle {
+    display: block;
+  }
+
+  .nav-brand .brand-text {
+    display: none;
+  }
+
+  #navUserName {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-nav-collapse {
+    display: none;
+  }
 }

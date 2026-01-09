@@ -14,40 +14,13 @@
     <!-- Main Styles -->
     <link rel="stylesheet" href="../css/main.css" />
   </head>
-  <body>
-    <!-- top navigation -->
-    <nav class="top-nav">
-      <div class="container">
-        <a href="../dashboard.html" class="nav-brand">
-          Karibu <span>Groceries</span>
-        </a>
 
-        <div class="nav-links d-none d-md-flex">
-          <a href="../dashboard.html" class="nav-link">Dashboard</a>
-          <a href="./sales-history.html" class="nav-link">Sales</a>
-          <a href="./stock.html" class="nav-link active">Stock</a>
-        </div>
+  <!-- Manager only -->
+  <body data-role="manager">
+    <!-- Dynamic Navbar -->
+    <div id="navbar-container"></div>
 
-        <div class="nav-actions">
-          <div class="profile-menu">
-            <button class="profile-trigger" id="profileToggle">
-              <div class="profile-avatar" id="profileAvatar">M</div>
-              <span id="navUserName">Manager</span>
-            </button>
-
-            <div class="profile-dropdown" id="profileDropdown">
-              <div class="profile-dropdown-header">
-                <strong id="dropdownUserName">Manager</strong>
-                <small id="dropdownUserRole">Manager</small>
-              </div>
-              <button id="logoutBtn">Logout</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Page Header-->
+    <!-- PAGE HEADER -->
     <header class="dashboard-header">
       <div class="container">
         <h4 class="mb-1 fw-bold">Stock Management</h4>
@@ -57,9 +30,9 @@
       </div>
     </header>
 
-    <!-- Main Content -->
+    <!-- MAIN CONTENT -->
     <main class="container py-5">
-      <!-- my KPIs -->
+      <!-- KPIs -->
       <section>
         <div class="row g-4">
           <div class="col-md-6 col-lg-3">
@@ -92,7 +65,7 @@
         </div>
       </section>
 
-      <!--Controls -->
+      <!-- CONTROLS -->
       <section class="mt-5 mb-4">
         <div class="card">
           <div class="card-body">
@@ -130,7 +103,7 @@
         </div>
       </section>
 
-      <!-- Stock Table -->
+      <!-- STOCK TABLE -->
       <div class="card table-card">
         <div class="table-header">
           <div>
@@ -173,18 +146,14 @@
     <script src="../js/auth.js"></script>
     <script src="../js/manager/stock.js"></script>
 
+    <!-- Load Navbar -->
     <script>
-      const profileToggle = document.getElementById("profileToggle");
-      const profileDropdown = document.getElementById("profileDropdown");
-
-      profileToggle.addEventListener("click", (e) => {
-        e.stopPropagation();
-        profileDropdown.classList.toggle("open");
-      });
-
-      document.addEventListener("click", () => {
-        profileDropdown.classList.remove("open");
-      });
+      fetch("../navbar.html")
+        .then((res) => res.text())
+        .then((html) => {
+          document.getElementById("navbar-container").innerHTML = html;
+        })
+        .catch((err) => console.error("Error loading navbar:", err));
     </script>
   </body>
 </html>

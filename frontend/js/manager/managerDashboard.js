@@ -1,73 +1,69 @@
-// managerDashboard.js
+// managerDashboard.js — Manager Dashboard Logic
 
 /* AUTH & ROLE PROTECTION */
-const user = JSON.parse(localStorage.getItem("kglUser") || "{}");
-
-if (!user || user.role !== "manager") {
-  alert("Access denied. Manager only.");
-  window.location.href = "../index.html";
+let user = null;
+try {
+  user = JSON.parse(localStorage.getItem("kglUser"));
+} catch {
+  user = null;
 }
 
-/* USER CONTEXT */
+if (!user || user.role !== "manager") {
+  alert("Access denied. Managers only.");
+  window.location.href = "/index.html";
+  throw new Error("Unauthorized access");
+}
+
+/* DOM READY */
 document.addEventListener("DOMContentLoaded", () => {
-  // Optional: show manager info if elements exist
+  /* USER CONTEXT */
   const nameEl = document.getElementById("managerName");
   const branchEl = document.getElementById("managerBranch");
 
-  if (nameEl) nameEl.textContent = user.username || "Manager";
-  if (branchEl)
-    branchEl.textContent =
-      user.branch?.charAt(0).toUpperCase() + user.branch?.slice(1) || "—";
-});
+  if (nameEl) {
+    nameEl.textContent = user.displayName || user.username || "Manager";
+  }
 
-/* LOGOUT */
-const logoutBtn = document.getElementById("logoutBtn");
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", () => {
-    if (confirm("Logout from Karibu Groceries?")) {
-      localStorage.removeItem("kglUser");
-      window.location.href = "../index.html";
+  if (branchEl) {
+    branchEl.textContent = user.branch
+      ? user.branch.charAt(0).toUpperCase() + user.branch.slice(1)
+      : "—";
+  }
+
+  /* NAVIGATION ACTIONS*/
+  const navMap = [
+    {
+      id: "openProcurement",
+      url: "/pages/procurement.html",
+    },
+    {
+      id: "viewStock",
+      url: "/pages/stock.html",
+    },
+    {
+      id: "managerSales",
+      url: "/pages/cash-sale.html",
+    },
+    {
+      id: "viewSalesHistory",
+      url: "/pages/sales-history.html",
+    },
+  ];
+
+  navMap.forEach(({ id, url }) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("click", () => {
+        window.location.href = url;
+      });
     }
   });
-}
+});
 
-/* NAVIGATION ACTIONS */
-// Record procurement (manager only)
-const openProcurement = document.getElementById("openProcurement");
-if (openProcurement) {
-  openProcurement.addEventListener("click", () => {
-    window.location.href = "../pages/procurement.html";
-  });
-}
-
-// View stock levels
-const viewStock = document.getElementById("viewStock");
-if (viewStock) {
-  viewStock.addEventListener("click", () => {
-    window.location.href = "../pages/stock.html";
-  });
-}
-
-// Manager sales (manager CAN record sales)
-const managerSales = document.getElementById("managerSales");
-if (managerSales) {
-  managerSales.addEventListener("click", () => {
-    window.location.href = "../pages/cash-sale.html";
-  });
-}
-
-// Sales history (manager sees all branch sales)
-const viewSalesHistory = document.getElementById("viewSalesHistory");
-if (viewSalesHistory) {
-  viewSalesHistory.addEventListener("click", () => {
-    window.location.href = "../pages/sales-history.html";
-  });
-}
-
-/* Prevent stock manipulation by mistake */
+/* SESSION EXPIRY HANDLING*/
 window.addEventListener("storage", (e) => {
   if (e.key === "kglUser" && !e.newValue) {
     alert("Session expired. Please login again.");
-    window.location.href = "../index.html";
+    window.location.href = "/index.html";
   }
 });

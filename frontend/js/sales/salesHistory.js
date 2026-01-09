@@ -11,11 +11,11 @@ if (!user || !user.role) {
   window.location.href = "../index.html";
 }
 
-/* LOAD DATA */
+/* LOAD DATA*/
 const cashSales = JSON.parse(localStorage.getItem("kglSales") || "[]");
 const creditSales = JSON.parse(localStorage.getItem("kglCreditSales") || "[]");
 
-/* BUTTON CONTROL (SAFE) */
+/* BUTTON CONTROL */
 const cashBtn = document.getElementById("cashBtn");
 const creditBtn = document.getElementById("creditBtn");
 const exportBtn = document.getElementById("exportCsvBtn");
@@ -32,19 +32,20 @@ if (user.role === "director") {
   summary && summary.classList.remove("d-none");
 
   const totalCash = cashSales.reduce((s, x) => s + (x.amountPaid || 0), 0);
+
   const totalCredit = creditSales.reduce((s, x) => s + (x.amountDue || 0), 0);
+
   const totalTonnage =
     cashSales.reduce((s, x) => s + (x.tonnageSold || 0), 0) +
     creditSales.reduce((s, x) => s + (x.tonnage || 0), 0);
 
   setText("totalCash", formatCurrency(totalCash));
   setText("totalCredit", formatCurrency(totalCredit));
-  setText("totalTonnage", `${totalTonnage} KG`);
+  setText("totalTonnage", `${totalTonnage.toLocaleString()} KG`);
   setText("totalTransactions", cashSales.length + creditSales.length);
 }
 
-/* 
-  TABLE VIEW (MANAGER / SALES) */
+/* TABLE VIEW (MANAGER / SALES)*/
 document.getElementById("salesTableSection")?.classList.remove("d-none");
 
 const tableBody = document.getElementById("salesTableBody");
@@ -56,29 +57,30 @@ const typeFilter = document.getElementById("typeFilter");
 
 let allSales = [];
 
-/* NORMALIZE DATA */
+/* CASH SALES*/
 cashSales.forEach((s) => {
   allSales.push({
-    date: `${s.date || ""} ${s.time || ""}`.trim(),
+    date: `${s.date || ""} ${s.time || ""}`.trim() || "-",
     produce: s.produceName || "-",
-    branch: s.branch || "-",
+    branch: (s.branch || "").toLowerCase(),
     kg: s.tonnageSold || 0,
     amount: s.amountPaid || 0,
     buyer: s.buyerName || "-",
-    agent: s.salesAgent || "",
+    agent: s.salesAgent || "-",
     type: "cash",
   });
 });
 
+/* CREDIT SALES */
 creditSales.forEach((s) => {
   allSales.push({
-    date: `${s.dispatchDate || ""} ${s.dispatchTime || ""}`.trim(),
+    date: s.createdAt ? new Date(s.createdAt).toLocaleString("en-GB") : "-",
     produce: s.produceName || "-",
-    branch: s.branch || "-",
+    branch: (s.branch || "").toLowerCase(),
     kg: s.tonnage || 0,
     amount: s.amountDue || 0,
     buyer: s.buyerName || "-",
-    agent: s.salesAgent || "",
+    agent: s.salesAgent || "-",
     type: "credit",
   });
 });
@@ -98,17 +100,11 @@ function render(data) {
 
   tableBody.innerHTML = "";
 
-  if (allSales.length === 0) {
+  if (data.length === 0) {
     showEmpty(
-      "No sales recorded yet",
+      "No records found",
       "Sales transactions will appear here once recorded.",
     );
-    recordCount.textContent = "0 records";
-    return;
-  }
-
-  if (data.length === 0) {
-    showEmpty("No matching records", "Adjust branch or sale type filters.");
     recordCount.textContent = "0 records";
     return;
   }
@@ -122,22 +118,24 @@ function render(data) {
         <td>${s.date}</td>
         <td>${s.produce}</td>
         <td>${capitalize(s.branch)}</td>
-        <td class="text-end">${s.kg}</td>
+        <td class="text-end">${s.kg.toLocaleString()}</td>
         <td class="text-end">${formatCurrency(s.amount)}</td>
         <td>${s.buyer}</td>
-        <td>${s.agent || "-"}</td>
+        <td>${s.agent}</td>
         <td class="type ${s.type}">${s.type}</td>
       </tr>
     `;
   });
 }
 
-/* FILTER HANDLING (SAFE) */
+/* FILTER HANDLING*/
 function applyFilters() {
   let filtered = [...allSales];
 
   if (branchFilter?.value) {
-    filtered = filtered.filter((s) => s.branch === branchFilter.value);
+    filtered = filtered.filter(
+      (s) => s.branch === branchFilter.value.toLowerCase(),
+    );
   }
 
   if (typeFilter?.value) {

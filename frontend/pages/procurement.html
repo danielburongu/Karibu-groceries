@@ -15,27 +15,8 @@
     <link rel="stylesheet" href="../css/main.css" />
   </head>
   <body>
-    <!-- TOP NAVIGATION-->
-    <nav class="top-nav">
-      <div class="container">
-        <a href="../dashboard.html" class="nav-brand">
-          Karibu <span>Groceries</span>
-        </a>
-
-        <div class="nav-links d-none d-md-flex">
-          <a href="../dashboard.html" class="nav-link">Dashboard</a>
-          <a href="./stock.html" class="nav-link">Stock</a>
-          <a href="./procurement.html" class="nav-link active">Procurement</a>
-          <a href="./sales-history.html" class="nav-link">Sales</a>
-        </div>
-
-        <div class="nav-actions">
-          <button id="logoutBtn" class="btn btn-outline-secondary btn-sm">
-            Logout
-          </button>
-        </div>
-      </div>
-    </nav>
+    <!-- Dynamic Navbar Placeholder -->
+    <div id="navbar-container"></div>
 
     <!-- PAGE HEADER-->
     <header class="dashboard-header">
@@ -246,19 +227,22 @@
     <script src="../js/auth.js"></script>
     <script src="../js/manager/procurement.js"></script>
 
+    <!-- Load Shared Navbar -->
     <script>
+      fetch("../navbar.html")
+        .then((res) => {
+          if (!res.ok) throw new Error("Navbar failed to load");
+          return res.text();
+        })
+        .then((html) => {
+          document.getElementById("navbar-container").innerHTML = html;
+        })
+        .catch((err) => console.error("Error loading navbar:", err));
+
       // Auto-fill date & time
       const now = new Date();
       document.getElementById("date").value = now.toISOString().split("T")[0];
       document.getElementById("time").value = now.toTimeString().slice(0, 5);
-
-      // Logout
-      document.getElementById("logoutBtn").addEventListener("click", () => {
-        if (confirm("Logout from Karibu Groceries?")) {
-          localStorage.removeItem("kglUser");
-          window.location.href = "../index.html";
-        }
-      });
     </script>
   </body>
 </html>
