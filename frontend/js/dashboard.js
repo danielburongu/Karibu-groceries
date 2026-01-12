@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (!user || !user.role) {
-    window.location.href = "/index.html";
+    window.location.href = "/frontend/index.html";
     return;
   }
 

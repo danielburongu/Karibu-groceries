@@ -1,9 +1,9 @@
-/*GOOGLE FONT */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap");
 
-/* CSS VARIABLES */
 :root {
-  --primary: #ff7043;
+  --primary: #9a44d3;
+  --primary-dark: #653c16d7;
+
   --dark: #263238;
   --muted: #78889b;
 
@@ -17,7 +17,7 @@
   --shadow-medium: 0 14px 32px rgba(0, 0, 0, 0.08);
 }
 
-/* BASE STYLES */
+/* Base */
 body {
   background-color: var(--bg-main);
   min-height: 100vh;
@@ -27,7 +27,7 @@ body {
   line-height: 1.55;
 }
 
-/* TOP NAVIGATION */
+/* Top Nav */
 .top-nav {
   position: fixed;
   top: 0;
@@ -49,7 +49,7 @@ body {
   width: 100%;
 }
 
-/* BRAND / LOGO */
+/* Brand */
 .nav-brand {
   display: flex;
   align-items: center;
@@ -62,15 +62,13 @@ body {
 
 .nav-brand .nav-logo {
   height: 42px;
-  width: auto;
-  object-fit: contain;
 }
 
 .nav-brand .brand-text span {
   font-weight: 500;
 }
 
-/* DESKTOP NAV LINKS */
+/* Desktop Links */
 .nav-links {
   display: flex;
   gap: 0.4rem;
@@ -79,7 +77,7 @@ body {
 .nav-link {
   font-size: 0.88rem;
   color: var(--muted);
-  padding: 0.4rem 0.75rem;
+  padding: 0.45rem 0.85rem;
   border-radius: 0.45rem;
   text-decoration: none;
   transition:
@@ -93,12 +91,12 @@ body {
 }
 
 .nav-link.active {
-  background-color: rgba(0, 0, 0, 0.06);
-  color: var(--dark);
+  background-color: rgba(21, 128, 61, 0.12);
+  color: var(--primary);
   font-weight: 600;
 }
 
-/* PROFILE MENU */
+/* Profile */
 .profile-menu {
   position: relative;
 }
@@ -107,7 +105,7 @@ body {
   background: transparent;
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 0.3rem 0.65rem;
+  padding: 0.35rem 0.75rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -129,6 +127,7 @@ body {
   font-size: 0.75rem;
 }
 
+/* Dropdown */
 .profile-dropdown {
   position: absolute;
   right: 0;
@@ -162,7 +161,7 @@ body {
 
 .profile-dropdown button {
   width: 100%;
-  padding: 0.6rem 1rem;
+  padding: 0.65rem 1rem;
   background: none;
   border: none;
   text-align: left;
@@ -176,7 +175,7 @@ body {
   color: var(--dark);
 }
 
-/* MOBILE NAVIGATION */
+/* Mobile Toggle */
 .nav-toggle {
   background: none;
   border: none;
@@ -192,6 +191,7 @@ body {
   margin: 5px 0;
 }
 
+/* Mobile Nav */
 .mobile-nav-collapse {
   position: absolute;
   top: 64px;
@@ -205,21 +205,23 @@ body {
 }
 
 .mobile-nav-collapse.open {
-  max-height: 500px;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 .mobile-nav-link {
   display: block;
-  padding: 0.85rem 1.5rem;
+  padding: 1rem 1.5rem;
   color: var(--dark);
   text-decoration: none;
+  font-size: 0.9rem;
 }
 
 .mobile-nav-link:hover {
   background-color: rgba(0, 0, 0, 0.05);
 }
 
-/* PAGE HEADER */
+/* Header */
 .dashboard-header {
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
@@ -231,7 +233,7 @@ body {
   font-size: 0.85rem;
 }
 
-/* CARDS & SECTIONS */
+/* Cards */
 section {
   margin-bottom: 3rem;
 }
@@ -247,31 +249,7 @@ section {
   padding: 1.75rem;
 }
 
-.table-header {
-  padding: 1.15rem 1.75rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.summary-card {
-  padding: 1.6rem 1.5rem;
-  border-radius: 1rem;
-  border: 1px solid var(--border);
-}
-
-.summary-card h5 {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.summary-amount {
-  font-size: 1.9rem;
-  font-weight: 800;
-}
-
-/* STATUS BADGES */
+/* Status */
 .status-badge {
   padding: 0.25rem 0.6rem;
   border-radius: 999px;
@@ -280,19 +258,20 @@ section {
 }
 
 .status-available {
-  background: rgba(38, 50, 56, 0.08);
+  background: rgba(21, 128, 61, 0.12);
+  color: var(--primary);
 }
 
 .status-low {
-  background: rgba(255, 112, 67, 0.15);
-  color: var(--primary);
+  background: rgba(255, 112, 67, 0.18);
+  color: #c2410c;
 }
 
 .status-out {
   background: rgba(0, 0, 0, 0.08);
 }
 
-/* BUTTONS */
+/* Buttons */
 .btn-primary,
 .btn-success {
   background-color: var(--primary);
@@ -301,11 +280,11 @@ section {
 
 .btn-primary:hover,
 .btn-success:hover {
-  background-color: #f45c2e;
-  border-color: #f45c2e;
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
 }
 
-/* RESPONSIVE */
+/* Responsive */
 @media (max-width: 767.98px) {
   .nav-links {
     display: none;
@@ -315,10 +294,7 @@ section {
     display: block;
   }
 
-  .nav-brand .brand-text {
-    display: none;
-  }
-
+  .nav-brand .brand-text,
   #navUserName {
     display: none;
   }

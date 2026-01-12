@@ -10,7 +10,7 @@ try {
 
 if (!user || user.role !== "manager") {
   alert("Access denied. Manager only.");
-  window.location.href = "/index.html";
+  window.location.href = "/frontend/navbar.html";
   throw new Error("Unauthorized access");
 }
 

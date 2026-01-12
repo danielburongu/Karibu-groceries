@@ -1,23 +1,38 @@
-// procurement.js — Produce Procurement (Manager Only)
+/**
+ * Produce Procurement Module – Karibu Groceries
+ * ------------------------------------------------------------
+ * Responsibilities:
+ * - Restrict access to managers only
+ * - Validate procurement form inputs
+ * - Record incoming produce into branch stock
+ * - Prevent duplicate stock entries
+ * - Handle session expiry across tabs */
 
-/* AUTH & ROLE PROTECTION */
+/* Authentication & Role Protection */
+
+// Safely load the current user session
 let user = null;
+
 try {
   user = JSON.parse(localStorage.getItem("kglUser"));
 } catch {
   user = null;
 }
 
+// Block access if user is missing or not a manager
 if (!user || user.role !== "manager") {
   alert("Access denied. Managers only.");
   window.location.href = "/index.html";
   throw new Error("Unauthorized access");
 }
 
-/* DOM REFERENCES (SAFE) */
+/* DOM Initialization */
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("procurementForm");
-  if (!form) return;
+  if (!form) return; // Fail safely if form is not found
+
+  /* input fileds */
 
   const produceNameInput = document.getElementById("produceName");
   const produceTypeInput = document.getElementById("produceType");
@@ -31,11 +46,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const branchInput = document.getElementById("branch");
   const sellingPriceInput = document.getElementById("sellingPrice");
 
-  /* FORM SUBMISSION */
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  /* lock branch to manager */
+  // Managers can only procure for their assigned branch
+  if (user.branch && branchInput) {
+    branchInput.value = user.branch;
+    branchInput.disabled = true;
+  }
 
-    /* COLLECT VALUES */
+  /*  Form submission handler */
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault(); // Prevents default HTML submission
+
+    /* Collects & Sanitize the Input Values */
+
     const produceName = produceNameInput.value.trim();
     const produceType = produceTypeInput.value.trim();
     const sourceType = sourceTypeInput.value;
@@ -50,7 +74,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const dealerContact = dealerContactInput.value.trim();
     const branchVal = branchInput.value;
 
-    /* VALIDATIONS */
+    /* Validations and error simulation */
+
     if (!/^[a-zA-Z0-9 ]{2,}$/.test(produceName)) {
       alert("Produce name must be alphanumeric (min 2 characters).");
       return;
@@ -97,16 +122,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!branchVal) {
-      alert("Please select a receiving branch.");
+      alert("Receiving branch is required.");
       return;
     }
 
-    /* LOAD & UPDATE STOCK (IMMUTABLE)*/
-    let stock = JSON.parse(localStorage.getItem("kglStock") || "[]");
+    /* load and update stock (immutable logic) */
 
+    let stock = JSON.parse(localStorage.getItem("kglStock") || "[]");
     const now = new Date().toISOString();
     let updated = false;
 
+    // Update existing stock entry if it already exists
     stock = stock.map((item) => {
       if (
         item.produceName.toLowerCase() === produceName.toLowerCase() &&
@@ -125,6 +151,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       return item;
     });
+
+    /* Create New Stock Entry (if non is found or exists) */
 
     if (!updated) {
       stock.push({
@@ -145,18 +173,20 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    /* SAVE & CONFIRM */
-    localStorage.setItem("kglStock", JSON.stringify(stock));
+    /*  Save & Confirm */
 
+    localStorage.setItem("kglStock", JSON.stringify(stock));
     alert("Produce procurement recorded successfully.");
     form.reset();
   });
 });
 
-/* SESSION EXPIRY HANDLING */
+/* Session Expiry Handling */
+
+// Detect logout or session removal from another tab
 window.addEventListener("storage", (e) => {
   if (e.key === "kglUser" && !e.newValue) {
     alert("Session expired. Please login again.");
-    window.location.href = "/index.html";
+    window.location.href = "/frontend/index.html";
   }
 });

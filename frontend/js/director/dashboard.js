@@ -5,7 +5,7 @@ const user = JSON.parse(localStorage.getItem("kglUser") || "{}");
 
 if (!user || user.role !== "director") {
   alert("Access denied. Directors only.");
-  window.location.href = "../../index.html";
+  window.location.href = "/frontend/index.html";
   throw new Error("Unauthorized access");
 }
 

@@ -2,10 +2,10 @@
 // Sales role only | Demo-friendly validation
 
 /* CONFIG */
-const DEMO_MODE = true; //  set to false in production
+const DEMO_MODE = true;
 
 const NIN_REGEX = DEMO_MODE
-  ? /^[A-Z]{2}[A-Z0-9 ]{8,14}$/i // relaxed (demo)
+  ? /^[A-Z]{2}[A-Z0-9 ]{8,14}$/i //
   : /^[A-Z]{2}[A-Z0-9]{12,14}$/; // strict (production)
 
 /* AUTH & ROLE PROTECTION */
@@ -18,7 +18,7 @@ try {
 
 if (!user || user.role !== "sales") {
   alert("Access denied. Sales agents only.");
-  window.location.href = "../index.html";
+  window.location.href = "/frontend/index.html";
   throw new Error("Unauthorized access");
 }
 

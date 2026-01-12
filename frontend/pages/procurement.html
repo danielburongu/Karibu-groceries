@@ -14,11 +14,18 @@
     <!-- Main System Styles -->
     <link rel="stylesheet" href="../css/main.css" />
   </head>
-  <body>
+
+  <!-- 
+    data-role="manager"
+    -------------------
+    Enables role-based page protection using auth.js.
+    This page is explicitly restricted to managers only.
+  -->
+  <body data-role="manager">
     <!-- Dynamic Navbar Placeholder -->
     <div id="navbar-container"></div>
 
-    <!-- PAGE HEADER-->
+    <!-- PAGE HEADER -->
     <header class="dashboard-header">
       <div class="container">
         <h4 class="mb-1 fw-bold">Produce Procurement</h4>
@@ -28,7 +35,7 @@
       </div>
     </header>
 
-    <!-- MAIN CONTENT-->
+    <!-- MAIN CONTENT -->
     <main class="container py-5">
       <div class="row justify-content-center">
         <div class="col-lg-10 col-xl-8">
@@ -36,6 +43,10 @@
             <div class="card-body">
               <h4 class="fw-bold text-center mb-4">New Produce Delivery</h4>
 
+              <!-- 
+                novalidate disables browser validation
+                Validation is handled fully in procurement.js
+              -->
               <form id="procurementForm" novalidate>
                 <!-- PRODUCE DETAILS -->
                 <h4 class="section-title">Produce Details</h4>
@@ -51,9 +62,10 @@
                         class="form-control"
                         id="produceName"
                         placeholder="Maize"
+                        aria-label="Produce Name"
                         required
                       />
-                      <label>Produce Name</label>
+                      <label for="produceName">Produce Name</label>
                     </div>
                   </div>
 
@@ -64,15 +76,21 @@
                         class="form-control"
                         id="produceType"
                         placeholder="Yellow Maize"
+                        aria-label="Produce Type"
                         required
                       />
-                      <label>Produce Variety / Type</label>
+                      <label for="produceType"> Produce Variety / Type </label>
                     </div>
                   </div>
 
                   <div class="col-12">
                     <div class="form-floating">
-                      <select class="form-select" id="sourceType" required>
+                      <select
+                        class="form-select"
+                        id="sourceType"
+                        aria-label="Source of Produce"
+                        required
+                      >
                         <option value="" disabled selected>
                           Select source
                         </option>
@@ -80,12 +98,12 @@
                         <option value="company">Company Supplier</option>
                         <option value="farm">Karibu Groceries Farm</option>
                       </select>
-                      <label>Source of Produce</label>
+                      <label for="sourceType">Source of Produce</label>
                     </div>
                   </div>
                 </div>
 
-                <!-- DELIVERY -->
+                <!-- DELIVERY INFORMATION -->
                 <h4 class="section-title">Delivery Information</h4>
                 <p class="page-subtitle mb-3">
                   When and how much was received.
@@ -93,7 +111,9 @@
 
                 <div class="row g-3 mb-4">
                   <div class="col-md-4">
-                    <label class="form-label small">Delivery Date</label>
+                    <label class="form-label small" for="date">
+                      Delivery Date
+                    </label>
                     <input
                       type="date"
                       class="form-control"
@@ -103,7 +123,9 @@
                   </div>
 
                   <div class="col-md-4">
-                    <label class="form-label small">Delivery Time</label>
+                    <label class="form-label small" for="time">
+                      Delivery Time
+                    </label>
                     <input
                       type="time"
                       class="form-control"
@@ -113,7 +135,9 @@
                   </div>
 
                   <div class="col-md-4">
-                    <label class="form-label small">Quantity (KG)</label>
+                    <label class="form-label small" for="tonnage">
+                      Quantity (KG)
+                    </label>
                     <input
                       type="number"
                       class="form-control"
@@ -125,7 +149,7 @@
                   </div>
                 </div>
 
-                <!-- SUPPLIER -->
+                <!-- SUPPLIER DETAILS -->
                 <h4 class="section-title">Supplier Details</h4>
                 <p class="page-subtitle mb-3">
                   For traceability and follow-up.
@@ -139,9 +163,10 @@
                         class="form-control"
                         id="dealerName"
                         placeholder="Supplier Name"
+                        aria-label="Supplier Name"
                         required
                       />
-                      <label>Supplier / Dealer Name</label>
+                      <label for="dealerName"> Supplier / Dealer Name </label>
                     </div>
                   </div>
 
@@ -152,28 +177,34 @@
                         class="form-control"
                         id="dealerContact"
                         placeholder="07XXXXXXXX"
+                        aria-label="Supplier Contact"
                         required
                       />
-                      <label>Supplier Contact</label>
+                      <label for="dealerContact"> Supplier Contact </label>
                     </div>
                   </div>
                 </div>
 
-                <!-- STOCK & PRICING -->
+                <!--STOCK & PRICING -->
                 <h4 class="section-title">Stock Allocation & Pricing</h4>
                 <p class="page-subtitle mb-3">Branch assignment and pricing.</p>
 
                 <div class="row g-3 mb-4">
                   <div class="col-md-4">
                     <div class="form-floating">
-                      <select class="form-select" id="branch" required>
+                      <select
+                        class="form-select"
+                        id="branch"
+                        aria-label="Receiving Branch"
+                        required
+                      >
                         <option value="" disabled selected>
                           Select branch
                         </option>
                         <option value="maganjo">Maganjo</option>
                         <option value="matugga">Matugga</option>
                       </select>
-                      <label>Receiving Branch</label>
+                      <label for="branch">Receiving Branch</label>
                     </div>
                   </div>
 
@@ -185,9 +216,10 @@
                         id="cost"
                         min="10000"
                         placeholder="Total cost"
+                        aria-label="Total Cost"
                         required
                       />
-                      <label>Total Cost (UGX)</label>
+                      <label for="cost">Total Cost (UGX)</label>
                     </div>
                   </div>
 
@@ -199,14 +231,17 @@
                         id="sellingPrice"
                         min="100"
                         placeholder="Price per KG"
+                        aria-label="Selling Price per KG"
                         required
                       />
-                      <label>Selling Price / KG (UGX)</label>
+                      <label for="sellingPrice">
+                        Selling Price / KG (UGX)
+                      </label>
                     </div>
                   </div>
                 </div>
 
-                <!-- ACTION -->
+                <!--ACTION -->
                 <div class="d-grid mt-4">
                   <button type="submit" class="btn btn-primary btn-lg">
                     Save Procurement Record
@@ -223,11 +258,11 @@
       </div>
     </main>
 
-    <!-- SCRIPTS -->
+    <!--SCRIPTS-->
     <script src="../js/auth.js"></script>
     <script src="../js/manager/procurement.js"></script>
 
-    <!-- Load Shared Navbar -->
+    <!-- Shared Navbar Loader -->
     <script>
       fetch("../navbar.html")
         .then((res) => {
@@ -239,7 +274,7 @@
         })
         .catch((err) => console.error("Error loading navbar:", err));
 
-      // Auto-fill date & time
+      // Auto-fill current date & time
       const now = new Date();
       document.getElementById("date").value = now.toISOString().split("T")[0];
       document.getElementById("time").value = now.toTimeString().slice(0, 5);

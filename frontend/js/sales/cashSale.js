@@ -10,7 +10,7 @@ try {
 
 if (!user || user.role !== "sales") {
   alert("Access denied. Sales agents only.");
-  window.location.href = "../index.html";
+  window.location.href = "/frontend/index.html";
   throw new Error("Unauthorized access");
 }
 
