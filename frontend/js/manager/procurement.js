@@ -22,7 +22,7 @@ try {
 // Block access if user is missing or not a manager
 if (!user || user.role !== "manager") {
   alert("Access denied. Managers only.");
-  window.location.href = "/index.html";
+  window.location.href = "/frontend/index.html";
   throw new Error("Unauthorized access");
 }
 

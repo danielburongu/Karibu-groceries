@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!currentUser || currentUser.role !== "director") {
     alert("Access denied. Directors only.");
-    window.location.href = "../../index.html";
+    window.location.href = "/frontend/index.html";
     return;
   }
 
