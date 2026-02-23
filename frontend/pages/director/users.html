@@ -5,106 +5,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User Management | Karibu Groceries</title>
 
-    <!-- Bootstrap 5 -->
+    <!-- Bootstrap -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
 
-    <!-- Main Styles -->
+    <!-- Icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Design System -->
+    <link rel="stylesheet" href="../../css/design-system.css" />
+    <link rel="stylesheet" href="../../css/navbar.css" />
+    <link rel="stylesheet" href="../../css/sidebar.css" />
     <link rel="stylesheet" href="../../css/main.css" />
   </head>
 
-  <!-- Director only -->
   <body data-role="director">
-    <!-- Dynamic Navbar -->
     <div id="navbar-container"></div>
+    <div id="sidebar-container"></div>
 
-    <!-- PAGE HEADER -->
-    <header class="dashboard-header border-bottom">
-      <div class="container py-4">
-        <h4 class="mb-1 fw-bold">User Management</h4>
-        <p class="page-subtitle mb-0">
-          Manage staff accounts across all branches
-          <span class="text-muted">(Director only)</span>
-        </p>
-      </div>
-    </header>
-
-    <!-- MAIN CONTENT -->
-    <main class="container py-5">
-      <div class="row justify-content-center">
-        <div class="col-lg-10 col-xl-9">
-          <!-- Section Header -->
-          <div
-            class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3"
-          >
-            <div>
-              <h4 class="page-title mb-1">Staff Accounts</h4>
-              <p class="text-muted mb-0">
-                Managers and sales agents registered in the system
-              </p>
-            </div>
-
-            <button
-              class="btn btn-success btn-lg"
-              data-bs-toggle="modal"
-              data-bs-target="#addUserModal"
-            >
-              Add New User
-            </button>
-          </div>
-
-          <!-- Users List -->
-          <div id="usersList">
-            <div class="text-center text-muted py-5">
-              <p>Loading users…</p>
-            </div>
-          </div>
+    <div class="page-wrapper">
+      <!-- HEADER -->
+      <header class="dashboard-header dashboard-header--sticky border-bottom">
+        <div class="content-container">
+          <h4 class="fw-bold mb-1">User Management</h4>
+          <p class="page-subtitle mb-0">
+            Control staff access, roles and branch assignments
+          </p>
         </div>
-      </div>
-    </main>
+      </header>
 
-    <!-- ADD / EDIT USER MODAL -->
-    <div
-      class="modal fade"
-      id="addUserModal"
-      tabindex="-1"
-      aria-labelledby="addUserModalLabel"
-      aria-hidden="true"
-    >
+      <main class="content-container py-4 py-lg-5">
+        <!-- MANAGEMENT SNAPSHOT -->
+
+        <section class="mb-5">
+          <div
+            class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3"
+          >
+            <h4 class="section-title mb-0">Management Snapshot</h4>
+
+            <div class="d-flex gap-2 align-items-center">
+              <!-- Search -->
+              <div class="input-group input-group-sm" style="width: 250px">
+                <span class="input-group-text bg-white">
+                  <i class="fa-solid fa-search"></i>
+                </span>
+                <input
+                  type="text"
+                  id="userSearch"
+                  class="form-control"
+                  placeholder="Search users..."
+                />
+              </div>
+
+              <!-- Add User -->
+              <button
+                class="btn-action"
+                data-bs-toggle="modal"
+                data-bs-target="#addUserModal"
+              >
+                <i class="fa-solid fa-user-plus me-1"></i>
+                Add User
+              </button>
+            </div>
+          </div>
+
+          <div class="kpi-row">
+            <div>
+              <div class="summary-card kpi-card">
+                <div class="kpi-label">Total Users</div>
+                <div class="kpi-value">
+                  <span id="totalUsers">—</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="summary-card kpi-card">
+                <div class="kpi-label">Managers</div>
+                <div class="kpi-value">
+                  <span id="managerCount">—</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="summary-card kpi-card">
+                <div class="kpi-label">Sales Agents</div>
+                <div class="kpi-value">
+                  <span id="salesCount">—</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="summary-card kpi-card">
+                <div class="kpi-label">Branches</div>
+                <div class="kpi-value">
+                  <span id="branchCount">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- USER LIST -->
+
+        <section>
+          <h4 class="section-title mb-3">Staff Accounts</h4>
+
+          <div id="usersList">
+            <div class="text-center text-muted py-5">Loading users...</div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ADD USER MODAL -->
+
+    <div class="modal fade" id="addUserModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <form id="userForm">
             <div class="modal-header bg-success text-white">
-              <h5 class="modal-title fw-semibold" id="addUserModalLabel">
-                Add New Staff Account
-              </h5>
+              <h5 class="modal-title fw-semibold">Add New Staff Account</h5>
               <button
                 type="button"
                 class="btn-close btn-close-white"
                 data-bs-dismiss="modal"
-                aria-label="Close"
               ></button>
             </div>
 
             <div class="modal-body">
-              <input type="hidden" id="editUserId" value="" />
-
-              <!-- Username -->
-              <div class="mb-4">
-                <label class="form-label fw-semibold">Username</label>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Full Name</label>
                 <input
                   type="text"
                   class="form-control form-control-lg"
-                  id="modalUsername"
-                  placeholder="e.g. john.manager"
+                  id="modalName"
                   required
                 />
               </div>
 
-              <!-- Role -->
-              <div class="mb-4">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Email</label>
+                <input
+                  type="email"
+                  class="form-control form-control-lg"
+                  id="modalEmail"
+                  required
+                />
+              </div>
+
+              <div class="mb-3">
                 <label class="form-label fw-semibold">Role</label>
                 <select
                   class="form-select form-select-lg"
@@ -116,8 +173,7 @@
                 </select>
               </div>
 
-              <!-- Branch -->
-              <div class="mb-4">
+              <div class="mb-3">
                 <label class="form-label fw-semibold">Branch</label>
                 <select
                   class="form-select form-select-lg"
@@ -129,41 +185,59 @@
                 </select>
               </div>
 
-              <p class="text-muted small mb-0">
-                Access rights are enforced automatically based on role.
-              </p>
+              <div class="alert alert-light small">
+                Temporary password will be generated automatically and displayed
+                after creation.
+              </div>
             </div>
 
             <div class="modal-footer">
               <button
                 type="button"
-                class="btn btn-outline-secondary"
+                class="btn-action secondary"
                 data-bs-dismiss="modal"
               >
                 Cancel
               </button>
-              <button type="submit" class="btn btn-success btn-lg">
-                Save User
-              </button>
+
+              <button type="submit" class="btn-action">Create User</button>
             </div>
           </form>
         </div>
       </div>
     </div>
 
-    <!-- SCRIPTS -->
+    <!-- Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- App Scripts -->
     <script src="../../js/auth.js"></script>
     <script src="../../js/director/users.js"></script>
 
-    <!-- Load Shared Navbar -->
+    <!-- Layout Loader -->
     <script>
-      fetch("../../navbar.html")
-        .then((res) => res.text())
-        .then((html) => {
-          document.getElementById("navbar-container").innerHTML = html;
-        })
-        .catch((err) => console.error("Error loading navbar:", err));
+      async function loadLayout() {
+        try {
+          const [navbarHTML, sidebarHTML] = await Promise.all([
+            fetch("../../navbar.html").then((r) => r.text()),
+            fetch("../../sidebar.html").then((r) => r.text()),
+          ]);
+
+          document.getElementById("navbar-container").innerHTML = navbarHTML;
+          document.getElementById("sidebar-container").innerHTML = sidebarHTML;
+
+          ["navbar", "sidebar"].forEach((name) => {
+            const script = document.createElement("script");
+            script.src = `../../js/${name}.js`;
+            script.defer = true;
+            document.body.appendChild(script);
+          });
+        } catch (err) {
+          console.error("Layout load failed:", err);
+        }
+      }
+
+      loadLayout();
     </script>
   </body>
 </html>

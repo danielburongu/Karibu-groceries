@@ -5,189 +5,177 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard | Karibu Groceries</title>
 
-    <!-- Bootstrap -->
+    <!-- Bootstrap + Icons -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+      rel="stylesheet"
+    />
 
-    <!-- Main Styles -->
-    <link rel="stylesheet" href="./css/main.css" />
+    <!-- App styles -->
+    <link rel="stylesheet" href="/frontend/css/design-system.css" />
+    <link rel="stylesheet" href="/frontend/css/navbar.css" />
+    <link rel="stylesheet" href="/frontend/css/sidebar.css" />
+    <link rel="stylesheet" href="/frontend/css/main.css" />
   </head>
+
   <body>
-    <!-- Dynamic Navbar Placeholder -->
+    <!-- Layout injection points -->
     <div id="navbar-container"></div>
+    <div id="sidebar-container"></div>
 
-    <!-- Page Header-->
-    <header class="dashboard-header">
-      <div class="container">
-        <h4 class="mb-1 fw-bold">Dashboard Overview</h4>
-        <p class="page-subtitle">
-          Branch: <strong id="userBranch">—</strong> •
-          <span id="currentDate"></span>
-        </p>
-      </div>
-    </header>
-
-    <!-- Main page content -->
-    <main class="container py-5">
-      <!-- directors Snapshot -->
-      <section class="role-director">
-        <h4 class="section-title mb-3">Company Snapshot</h4>
-        <div class="row g-4">
-          <div class="col-md-4">
-            <div class="summary-card highlight">
-              <h5>Total Cash Sales</h5>
-              <p class="summary-amount" id="dirCashTotal">UGX 0</p>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="summary-card">
-              <h5>Outstanding Credit</h5>
-              <p class="summary-amount" id="dirCreditTotal">UGX 0</p>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="summary-card">
-              <h5>Total Stock (All Branches)</h5>
-              <p class="summary-amount" id="dirStockTotal">0 KG</p>
-            </div>
-          </div>
+    <div class="page-wrapper">
+      <!-- Sticky header -->
+      <header class="dashboard-header dashboard-header--sticky">
+        <div class="content-container">
+          <h4 class="fw-bold mb-1">Dashboard Overview</h4>
+          <p class="page-subtitle mb-0">
+            Branch: <strong id="userBranch">Loading...</strong> •
+            <span id="currentDate">-</span>
+          </p>
         </div>
-      </section>
+      </header>
 
-      <!-- operational performance -->
-      <section class="role-manager role-sales">
-        <h4 class="section-title mb-3">Today’s Performance</h4>
-        <div class="row g-4">
-          <div class="col-md-3">
-            <div class="summary-card highlight">
-              <h5>Cash Sales Today</h5>
-              <p class="summary-amount" id="cashToday">UGX 0</p>
+      <!-- Main content -->
+      <main class="content-container py-4 py-lg-5">
+        <!-- DIRECTOR ONLY SECTION -->
+        <section class="mb-5" data-role="director">
+          <h5 class="section-title mb-4">
+            <i class="me-2 text-primary"></i>Company Snapshot
+          </h5>
+          <div class="kpi-row">
+            <div class="summary-card kpi-card kpi-primary">
+              <div class="kpi-label">Total Cash Sales</div>
+              <div class="kpi-value">
+                <span id="dirCashTotal">Loading...</span>
+              </div>
+              <div class="kpi-meta muted">All branches combined</div>
+            </div>
+
+            <div class="summary-card kpi-card">
+              <div class="kpi-label">Outstanding Credit</div>
+              <div class="kpi-value">
+                <span id="dirCreditTotal">Loading...</span>
+              </div>
+              <div class="kpi-meta muted">Pending across company</div>
+            </div>
+
+            <div class="summary-card kpi-card">
+              <div class="kpi-label">Total Stock</div>
+              <div class="kpi-value">
+                <span id="dirStockTotal">Loading...</span>
+              </div>
+              <div class="kpi-meta muted">Current inventory</div>
             </div>
           </div>
-          <div class="col-md-3 role-manager">
-            <div class="summary-card">
-              <h5>Outstanding Credit</h5>
-              <p class="summary-amount" id="creditTotal">UGX 0</p>
+        </section>
+
+        <!-- MANAGER & SALES SECTION -->
+        <section class="mb-5" data-role="manager sales">
+          <h5 class="section-title mb-4">
+            <i class="fas me-2 text-success"></i>Today’s Performance
+          </h5>
+
+          <div class="kpi-row">
+            <div class="summary-card kpi-card kpi-primary">
+              <div class="kpi-label">Today’s Cash Sales</div>
+              <div class="kpi-value">
+                <span id="cashToday">Loading...</span>
+              </div>
+              <div class="kpi-meta muted">Current branch</div>
+            </div>
+
+            <div class="summary-card kpi-card">
+              <div class="kpi-label">Transactions Today</div>
+              <div class="kpi-value"><span id="todayTx">Loading...</span></div>
+              <div class="kpi-meta muted">All types</div>
+            </div>
+
+            <div class="summary-card kpi-card" data-role="manager">
+              <div class="kpi-label">Outstanding Credit</div>
+              <div class="kpi-value">
+                <span id="creditTotal">Loading...</span>
+              </div>
+              <div class="kpi-meta muted">Your branch</div>
+            </div>
+
+            <div class="summary-card kpi-card" data-role="manager">
+              <div class="kpi-label">Available Stock</div>
+              <div class="kpi-value">
+                <span id="stockTotal">Loading...</span>
+              </div>
+              <div class="kpi-meta muted">Your branch</div>
             </div>
           </div>
-          <div class="col-md-3 role-manager">
-            <div class="summary-card">
-              <h5>Available Stock</h5>
-              <p class="summary-amount" id="stockTotal">0 KG</p>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="summary-card">
-              <h5>Transactions Today</h5>
-              <p class="summary-amount" id="todayTx">0</p>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Quick actions section -->
-      <section class="role-manager role-sales">
-        <h4 class="section-title mb-3">Quick Actions</h4>
-        <div class="row g-3">
-          <div class="col-md-3">
-            <a
-              href="./pages/cash-sale.html"
-              class="btn btn-primary w-100 btn-lg"
-            >
-              Record Cash Sale
-            </a>
-          </div>
-          <div class="col-md-3">
-            <a
-              href="./pages/credit-sale.html"
-              class="btn btn-outline-primary w-100 btn-lg"
-            >
-              Record Credit Sale
-            </a>
-          </div>
-          <div class="col-md-3 role-manager">
-            <a
-              href="./pages/procurement.html"
-              class="btn btn-outline-secondary w-100 btn-lg"
-            >
-              Record Procurement
-            </a>
-          </div>
-          <div class="col-md-3 role-manager">
-            <a
-              href="./pages/stock.html"
-              class="btn btn-outline-secondary w-100 btn-lg"
-            >
-              View Stock
-            </a>
-          </div>
-        </div>
-      </section>
-    </main>
+        <!-- LOW STOCK ALERTS -->
+        <section class="mb-5" data-role="manager sales">
+          <h5 class="section-title mb-3">
+            <i class="fas me-2 text-warning"></i>Low Stock Alerts
+          </h5>
 
-    <!-- SCRIPTS -->
-    <script src="./js/auth.js"></script>
-    <script src="./js/dashboard.js"></script>
+          <div id="lowStockContainer" class="row g-3"></div>
 
-    <!--NAVBAR LOADER + LOGOUT -->
+          <div id="lowStockEmpty" class="empty-state d-none text-center py-5">
+            <i class="fas fa-boxes-stacked fa-3x text-muted mb-3"></i>
+            <h5>No low stock items</h5>
+            <p class="text-muted small">All inventory levels are healthy.</p>
+          </div>
+        </section>
+
+        <!-- TOP SELLING PRODUCE -->
+        <section data-role="manager sales">
+          <h5 class="section-title mb-3">
+            <i class="me-2 text-danger"></i>Top Selling Produce
+          </h5>
+
+          <div id="topSellingContainer" class="row g-3"></div>
+
+          <div id="topSellingEmpty" class="empty-state d-none text-center py-5">
+            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+            <h5>No sales data yet</h5>
+            <p class="text-muted small">
+              Sales will appear here once recorded.
+            </p>
+          </div>
+        </section>
+
+        <!-- Global error placeholder (optional) -->
+        <div id="dashboardError" class="d-none"></div>
+      </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/frontend/js/auth.js"></script>
+    <script src="/frontend/js/dashboard.js"></script>
+
+    <!-- Layout loader -->
     <script>
-      fetch("./navbar.html")
-        .then((res) => {
-          if (!res.ok) throw new Error("Navbar failed to load");
-          return res.text();
-        })
-        .then((html) => {
-          document.getElementById("navbar-container").innerHTML = html;
+      (async function loadLayout() {
+        try {
+          const [navbarHTML, sidebarHTML] = await Promise.all([
+            fetch("/frontend/navbar.html").then((r) => r.text()),
+            fetch("/frontend/sidebar.html").then((r) => r.text()),
+          ]);
 
-          /* ACTIVE DASHBOARD LINK */
-          document.querySelectorAll(".nav-link").forEach((link) => {
-            if (link.getAttribute("href") === "/frontend/dashboard.html") {
-              link.classList.add("active");
-            }
+          document.getElementById("navbar-container").innerHTML = navbarHTML;
+          document.getElementById("sidebar-container").innerHTML = sidebarHTML;
+
+          ["navbar", "sidebar"].forEach((name) => {
+            const script = document.createElement("script");
+            script.src = `/frontend/js/${name}.js`;
+            script.defer = true;
+            document.body.appendChild(script);
           });
-
-          /* PROFILE DROPDOWN */
-          const profileToggle = document.getElementById("profileToggle");
-          const profileDropdown = document.getElementById("profileDropdown");
-
-          if (profileToggle && profileDropdown) {
-            profileToggle.addEventListener("click", (e) => {
-              e.stopPropagation();
-              profileDropdown.classList.toggle("open");
-            });
-
-            document.addEventListener("click", () => {
-              profileDropdown.classList.remove("open");
-            });
-
-            profileDropdown.addEventListener("click", (e) => {
-              e.stopPropagation();
-            });
-          }
-
-          /* LOGOUT  */
-          const logoutBtn = document.getElementById("logoutBtn");
-          if (logoutBtn) {
-            logoutBtn.addEventListener("click", () => {
-              if (!confirm("Logout from Karibu Groceries?")) return;
-              localStorage.removeItem("kglUser");
-              window.location.href = "./index.html";
-            });
-          }
-
-          /* MOBILE MENU */
-          const mobileToggle = document.getElementById("mobileMenuToggle");
-          const mobileNav = document.getElementById("mobileNavCollapse");
-
-          if (mobileToggle && mobileNav) {
-            mobileToggle.addEventListener("click", () => {
-              mobileNav.classList.toggle("open");
-            });
-          }
-        })
-        .catch((err) => console.error(err));
+        } catch (err) {
+          console.error("Layout loading failed:", err);
+        }
+      })();
     </script>
   </body>
 </html>

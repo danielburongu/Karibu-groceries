@@ -1,176 +1,56 @@
-<nav class="top-nav" id="mainNav">
-  <div class="container nav-inner">
-    <!-- Brand -->
+<nav class="top-nav" id="mainNav" aria-label="Primary">
+  <div class="nav-inner">
+    <!-- BRAND -->
     <a href="/frontend/dashboard.html" class="nav-brand">
       <img
         src="/frontend/assets/images/karibu-logo.png"
-        alt="Karibu Groceries"
+        alt="Karibu Groceries logo"
         class="nav-logo"
+        width="36"
+        height="36"
       />
       <span class="brand-text d-none d-md-inline">
         Karibu <span>Groceries</span>
       </span>
     </a>
 
-    <!-- Desktop Navigation -->
-    <div class="nav-links d-none d-md-flex">
-      <a href="/frontend/dashboard.html" class="nav-link">Dashboard</a>
-
-      <a
-        href="/frontend/pages/sales-history.html"
-        class="nav-link role-sales role-manager"
+    <!-- ACTIONS -->
+    <div class="nav-actions">
+      <!-- MOBILE TOGGLE -->
+      <button
+        class="nav-toggle d-md-none"
+        id="mobileMenuToggle"
+        type="button"
+        aria-label="Toggle menu"
+        aria-expanded="false"
       >
-        Sales
-      </a>
-
-      <a href="/frontend/pages/stock.html" class="nav-link role-manager">
-        Stock
-      </a>
-
-      <a href="/frontend/pages/procurement.html" class="nav-link role-manager">
-        Procurement
-      </a>
-
-      <a
-        href="/frontend/pages/director/dashboard.html"
-        class="nav-link role-director"
-      >
-        Director Panel
-      </a>
-
-      <a
-        href="/frontend/pages/director/users.html"
-        class="nav-link role-director"
-      >
-        Users
-      </a>
-    </div>
-
-    <!-- Profile -->
-    <div class="profile-menu">
-      <button class="profile-trigger" id="profileToggle">
-        <div class="profile-avatar" id="profileAvatar">U</div>
-        <span id="navUserName" class="d-none d-sm-inline">User</span>
+        <span></span>
+        <span></span>
+        <span></span>
       </button>
 
-      <div class="profile-dropdown" id="profileDropdown">
-        <div class="profile-dropdown-header">
-          <strong id="dropdownUserName">User</strong>
-          <small id="dropdownUserRole">Role</small>
+      <!-- PROFILE -->
+      <div class="profile-menu">
+        <button
+          class="profile-trigger"
+          id="profileToggle"
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded="false"
+        >
+          <span class="profile-avatar" id="profileAvatar">U</span>
+          <span id="navUserName" class="d-none d-lg-inline ms-2"> User </span>
+        </button>
+
+        <div class="profile-dropdown" id="profileDropdown" role="menu" hidden>
+          <div class="profile-dropdown-header">
+            <strong id="dropdownUserName">User</strong>
+            <small id="dropdownUserRole">Role</small>
+          </div>
+
+          <button id="logoutBtn" type="button" role="menuitem">Logout</button>
         </div>
-        <button id="logoutBtn">Logout</button>
       </div>
     </div>
-
-    <!-- Mobile Toggle -->
-    <button class="nav-toggle d-md-none" id="mobileMenuToggle">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-  </div>
-
-  <!-- Mobile Navigation -->
-  <div class="mobile-nav-collapse" id="mobileNavCollapse">
-    <a href="/frontend/dashboard.html" class="mobile-nav-link">Dashboard</a>
-
-    <a
-      href="/frontend/pages/sales-history.html"
-      class="mobile-nav-link role-sales role-manager"
-    >
-      Sales
-    </a>
-
-    <a href="/frontend/pages/stock.html" class="mobile-nav-link role-manager">
-      Stock
-    </a>
-
-    <a
-      href="/frontend/pages/procurement.html"
-      class="mobile-nav-link role-manager"
-    >
-      Procurement
-    </a>
-
-    <a
-      href="/frontend/pages/director/dashboard.html"
-      class="mobile-nav-link role-director"
-    >
-      Director Panel
-    </a>
-
-    <a
-      href="/frontend/pages/director/users.html"
-      class="mobile-nav-link role-director"
-    >
-      Users
-    </a>
   </div>
 </nav>
-
-<script>
-  (function () {
-    const nav = document.getElementById("mainNav");
-    let user = null;
-
-    try {
-      user = JSON.parse(localStorage.getItem("kglUser"));
-    } catch {}
-
-    if (!user || !user.role) return;
-
-    // User info
-    const name = user.displayName || user.username || "User";
-    document.getElementById("navUserName").textContent = name;
-    document.getElementById("dropdownUserName").textContent = name;
-    document.getElementById("dropdownUserRole").textContent =
-      user.role.charAt(0).toUpperCase() + user.role.slice(1);
-    document.getElementById("profileAvatar").textContent = name.charAt(0);
-
-    // Role visibility
-    nav
-      .querySelectorAll(".role-director, .role-manager, .role-sales")
-      .forEach((el) => {
-        el.style.display = el.classList.contains(`role-${user.role}`)
-          ? ""
-          : "none";
-      });
-
-    // Active link
-    const current = window.location.pathname;
-    nav.querySelectorAll(".nav-link, .mobile-nav-link").forEach((link) => {
-      if (link.getAttribute("href") === current) {
-        link.classList.add("active");
-      }
-    });
-
-    // Dropdown
-    const toggle = document.getElementById("profileToggle");
-    const dropdown = document.getElementById("profileDropdown");
-
-    toggle.onclick = (e) => {
-      e.stopPropagation();
-      dropdown.classList.toggle("open");
-    };
-
-    document.addEventListener("click", () => dropdown.classList.remove("open"));
-
-    // Mobile menu
-    const mobileToggle = document.getElementById("mobileMenuToggle");
-    const mobileNav = document.getElementById("mobileNavCollapse");
-
-    mobileToggle.onclick = () => mobileNav.classList.toggle("open");
-    mobileNav
-      .querySelectorAll("a")
-      .forEach((a) =>
-        a.addEventListener("click", () => mobileNav.classList.remove("open")),
-      );
-
-    // Logout
-    document.getElementById("logoutBtn").onclick = () => {
-      if (!confirm("Logout from Karibu Groceries?")) return;
-      localStorage.removeItem("kglUser");
-      window.location.href = "/frontend/index.html";
-    };
-  })();
-</script>

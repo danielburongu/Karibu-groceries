@@ -1,0 +1,78 @@
+<aside class="sidebar" id="sidebar" aria-label="Main navigation">
+  <!-- MOBILE USER CARD -->
+  <div class="sidebar-user-card">
+    <div class="user-avatar" id="sidebarUserAvatar">U</div>
+
+    <div class="user-meta">
+      <strong id="sidebarUserName">User</strong>
+      <small id="sidebarUserRole">Role</small>
+    </div>
+  </div>
+
+  <!-- NAVIGATION -->
+  <nav class="sidebar-nav" aria-label="Main menu">
+    <!-- COMMON -->
+    <div class="sidebar-group" data-role="director manager sales">
+      <a href="/frontend/dashboard.html" class="sidebar-link">
+        <i class="fas fa-home sidebar-icon"></i>
+        <span>Dashboard</span>
+      </a>
+    </div>
+
+    <!-- SALES -->
+    <div class="sidebar-group" data-role="sales">
+      <a href="/frontend/pages/cash-sale.html" class="sidebar-link">
+        <i class="fas fa-cash-register sidebar-icon"></i>
+        <span>Cash Sale</span>
+      </a>
+
+      <a href="/frontend/pages/credit-sale.html" class="sidebar-link">
+        <i class="fas fa-clock sidebar-icon"></i>
+        <span>Credit Sale</span>
+      </a>
+    </div>
+
+    <!-- MANAGER -->
+    <div class="sidebar-group" data-role="manager">
+      <a href="/frontend/pages/sales-history.html" class="sidebar-link">
+        <i class="fas fa-money-bill-wave sidebar-icon"></i>
+        <span>Sales History</span>
+      </a>
+
+      <a href="/frontend/pages/stock.html" class="sidebar-link">
+        <i class="fas fa-boxes sidebar-icon"></i>
+        <span>Stock</span>
+      </a>
+
+      <a href="/frontend/pages/procurement.html" class="sidebar-link">
+        <i class="fas fa-shopping-cart sidebar-icon"></i>
+        <span>Procurement</span>
+      </a>
+    </div>
+
+    <!-- DIRECTOR -->
+    <div class="sidebar-group" data-role="director">
+      <a href="/frontend/pages/director/dashboard.html" class="sidebar-link">
+        <i class="fas fa-chart-line sidebar-icon"></i>
+        <span>Director Panel</span>
+      </a>
+
+      <a href="/frontend/pages/director/users.html" class="sidebar-link">
+        <i class="fas fa-users sidebar-icon"></i>
+        <span>Users</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- COLLAPSE BUTTON -->
+  <button
+    class="sidebar-collapse-btn"
+    id="sidebarCollapseBtn"
+    type="button"
+    aria-label="Toggle sidebar"
+    aria-expanded="true"
+  >
+    <i class="fas fa-angle-left"></i>
+    <span class="collapse-label">Collapse</span>
+  </button>
+</aside>

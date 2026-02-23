@@ -5,276 +5,269 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Produce Procurement | Karibu Groceries</title>
 
-    <!-- Bootstrap 5 -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+      rel="stylesheet"
+    />
 
-    <!-- Main System Styles -->
+    <link rel="stylesheet" href="../css/design-system.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/sidebar.css" />
     <link rel="stylesheet" href="../css/main.css" />
   </head>
 
-  <!-- 
-    data-role="manager"
-    -------------------
-    Enables role-based page protection using auth.js.
-    This page is explicitly restricted to managers only.
-  -->
   <body data-role="manager">
-    <!-- Dynamic Navbar Placeholder -->
     <div id="navbar-container"></div>
+    <div id="sidebar-container"></div>
 
-    <!-- PAGE HEADER -->
-    <header class="dashboard-header">
-      <div class="container">
-        <h4 class="mb-1 fw-bold">Produce Procurement</h4>
-        <p class="page-subtitle mb-0">
-          Record newly received produce into branch stock
-        </p>
-      </div>
-    </header>
+    <div class="page-wrapper">
+      <header class="dashboard-header dashboard-header--sticky">
+        <div class="content-container">
+          <h4 class="mb-1 fw-bold">Produce Procurement</h4>
+          <p class="page-subtitle mb-0">
+            Record newly received produce into branch inventory
+          </p>
+        </div>
+      </header>
 
-    <!-- MAIN CONTENT -->
-    <main class="container py-5">
-      <div class="row justify-content-center">
-        <div class="col-lg-10 col-xl-8">
-          <div class="card">
-            <div class="card-body">
-              <h4 class="fw-bold text-center mb-4">New Produce Delivery</h4>
+      <main class="content-container py-4 py-lg-5">
+        <div class="row justify-content-center">
+          <div class="col-lg-10 col-xl-8">
+            <div class="card">
+              <div class="card-body">
+                <h4 class="fw-bold text-center mb-4">New Produce Delivery</h4>
 
-              <!-- 
-                novalidate disables browser validation
-                Validation is handled fully in procurement.js
-              -->
-              <form id="procurementForm" novalidate>
-                <!-- PRODUCE DETAILS -->
-                <h4 class="section-title">Produce Details</h4>
-                <p class="page-subtitle mb-3">
-                  Identify the produce and its source.
-                </p>
+                <form id="procurementForm" novalidate>
+                  <!-- PRODUCE DETAILS -->
+                  <h4 class="section-title">Produce Details</h4>
+                  <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="produceName"
+                          name="produceName"
+                          minlength="2"
+                          required
+                          placeholder="e.g. Matooke"
+                        />
+                        <label for="produceName">Produce Name</label>
+                      </div>
+                    </div>
 
-                <div class="row g-3 mb-4">
-                  <div class="col-md-6">
-                    <div class="form-floating">
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="produceType"
+                          name="produceType"
+                          minlength="2"
+                          required
+                          placeholder="e.g. Cavendish"
+                        />
+                        <label for="produceType">Produce Variety / Type</label>
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="form-floating">
+                        <select
+                          class="form-select"
+                          id="sourceType"
+                          name="sourceType"
+                          required
+                        >
+                          <option value="" disabled selected>
+                            Select source
+                          </option>
+                          <option value="individual">Individual Dealer</option>
+                          <option value="company">Company Supplier</option>
+                          <option value="farm">Karibu Groceries Farm</option>
+                        </select>
+                        <label for="sourceType">Source of Produce</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- DELIVERY -->
+                  <h4 class="section-title">Delivery Information</h4>
+                  <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                      <label class="form-label small">Delivery Date</label>
                       <input
-                        type="text"
+                        type="date"
                         class="form-control"
-                        id="produceName"
-                        placeholder="Maize"
-                        aria-label="Produce Name"
+                        id="date"
+                        name="deliveryDate"
                         required
                       />
-                      <label for="produceName">Produce Name</label>
                     </div>
-                  </div>
 
-                  <div class="col-md-6">
-                    <div class="form-floating">
+                    <div class="col-md-4">
+                      <label class="form-label small">Delivery Time</label>
                       <input
-                        type="text"
+                        type="time"
                         class="form-control"
-                        id="produceType"
-                        placeholder="Yellow Maize"
-                        aria-label="Produce Type"
+                        id="time"
+                        name="deliveryTime"
                         required
                       />
-                      <label for="produceType"> Produce Variety / Type </label>
                     </div>
-                  </div>
 
-                  <div class="col-12">
-                    <div class="form-floating">
-                      <select
-                        class="form-select"
-                        id="sourceType"
-                        aria-label="Source of Produce"
-                        required
-                      >
-                        <option value="" disabled selected>
-                          Select source
-                        </option>
-                        <option value="individual">Individual Dealer</option>
-                        <option value="company">Company Supplier</option>
-                        <option value="farm">Karibu Groceries Farm</option>
-                      </select>
-                      <label for="sourceType">Source of Produce</label>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- DELIVERY INFORMATION -->
-                <h4 class="section-title">Delivery Information</h4>
-                <p class="page-subtitle mb-3">
-                  When and how much was received.
-                </p>
-
-                <div class="row g-3 mb-4">
-                  <div class="col-md-4">
-                    <label class="form-label small" for="date">
-                      Delivery Date
-                    </label>
-                    <input
-                      type="date"
-                      class="form-control"
-                      id="date"
-                      required
-                    />
-                  </div>
-
-                  <div class="col-md-4">
-                    <label class="form-label small" for="time">
-                      Delivery Time
-                    </label>
-                    <input
-                      type="time"
-                      class="form-control"
-                      id="time"
-                      required
-                    />
-                  </div>
-
-                  <div class="col-md-4">
-                    <label class="form-label small" for="tonnage">
-                      Quantity (KG)
-                    </label>
-                    <input
-                      type="number"
-                      class="form-control"
-                      id="tonnage"
-                      min="1000"
-                      placeholder="Min 1000 KG"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <!-- SUPPLIER DETAILS -->
-                <h4 class="section-title">Supplier Details</h4>
-                <p class="page-subtitle mb-3">
-                  For traceability and follow-up.
-                </p>
-
-                <div class="row g-3 mb-4">
-                  <div class="col-md-6">
-                    <div class="form-floating">
-                      <input
-                        type="text"
-                        class="form-control"
-                        id="dealerName"
-                        placeholder="Supplier Name"
-                        aria-label="Supplier Name"
-                        required
-                      />
-                      <label for="dealerName"> Supplier / Dealer Name </label>
-                    </div>
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="form-floating">
-                      <input
-                        type="tel"
-                        class="form-control"
-                        id="dealerContact"
-                        placeholder="07XXXXXXXX"
-                        aria-label="Supplier Contact"
-                        required
-                      />
-                      <label for="dealerContact"> Supplier Contact </label>
-                    </div>
-                  </div>
-                </div>
-
-                <!--STOCK & PRICING -->
-                <h4 class="section-title">Stock Allocation & Pricing</h4>
-                <p class="page-subtitle mb-3">Branch assignment and pricing.</p>
-
-                <div class="row g-3 mb-4">
-                  <div class="col-md-4">
-                    <div class="form-floating">
-                      <select
-                        class="form-select"
-                        id="branch"
-                        aria-label="Receiving Branch"
-                        required
-                      >
-                        <option value="" disabled selected>
-                          Select branch
-                        </option>
-                        <option value="maganjo">Maganjo</option>
-                        <option value="matugga">Matugga</option>
-                      </select>
-                      <label for="branch">Receiving Branch</label>
-                    </div>
-                  </div>
-
-                  <div class="col-md-4">
-                    <div class="form-floating">
+                    <div class="col-md-4">
+                      <label class="form-label small">Quantity (KG)</label>
                       <input
                         type="number"
                         class="form-control"
-                        id="cost"
-                        min="10000"
-                        placeholder="Total cost"
-                        aria-label="Total Cost"
+                        id="tonnage"
+                        name="tonnage"
+                        min="1000"
+                        step="0.1"
                         required
+                        placeholder="e.g. 2500"
                       />
-                      <label for="cost">Total Cost (UGX)</label>
                     </div>
                   </div>
 
-                  <div class="col-md-4">
-                    <div class="form-floating">
-                      <input
-                        type="number"
-                        class="form-control"
-                        id="sellingPrice"
-                        min="100"
-                        placeholder="Price per KG"
-                        aria-label="Selling Price per KG"
-                        required
-                      />
-                      <label for="sellingPrice">
-                        Selling Price / KG (UGX)
-                      </label>
+                  <!-- SUPPLIER -->
+                  <h4 class="section-title">Supplier Details</h4>
+                  <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="dealerName"
+                          name="dealerName"
+                          required
+                          placeholder="e.g. John Doe Farms"
+                        />
+                        <label for="dealerName">Supplier Name</label>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <input
+                          type="tel"
+                          class="form-control"
+                          id="dealerContact"
+                          name="dealerContact"
+                          pattern="^07\d{8}$"
+                          required
+                          placeholder="07XXXXXXXX"
+                        />
+                        <label for="dealerContact">Supplier Contact</label>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <!--ACTION -->
-                <div class="d-grid mt-4">
-                  <button type="submit" class="btn btn-primary btn-lg">
-                    Save Procurement Record
-                  </button>
-                </div>
+                  <!-- STOCK & PRICING -->
+                  <h4 class="section-title">Stock Allocation & Pricing</h4>
+                  <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                      <div class="form-floating">
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="branch"
+                          name="branch"
+                          readonly
+                        />
+                        <label for="branch">Receiving Branch</label>
+                      </div>
+                    </div>
 
-                <p class="page-subtitle text-center mt-3">
-                  Stock updates immediately after saving.
-                </p>
-              </form>
+                    <div class="col-md-4">
+                      <div class="form-floating">
+                        <input
+                          type="number"
+                          class="form-control"
+                          id="cost"
+                          name="cost"
+                          min="10000"
+                          step="100"
+                          required
+                          placeholder="e.g. 4500000"
+                        />
+                        <label for="cost">Total Cost (UGX)</label>
+                      </div>
+                    </div>
+
+                    <div class="col-md-4">
+                      <div class="form-floating">
+                        <input
+                          type="number"
+                          class="form-control"
+                          id="sellingPrice"
+                          name="sellingPrice"
+                          min="100"
+                          step="10"
+                          required
+                          placeholder="e.g. 1800"
+                        />
+                        <label for="sellingPrice"
+                          >Selling Price / KG (UGX)</label
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="d-grid mt-4">
+                    <button type="submit" class="btn-action">
+                      <i class="fa-solid fa-floppy-disk me-2"></i> Save
+                      Procurement Record
+                    </button>
+                  </div>
+
+                  <p class="page-subtitle text-center mt-3 text-muted small">
+                    Inventory updates automatically after saving.
+                  </p>
+                </form>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
 
-    <!--SCRIPTS-->
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/api.js"></script>
+    <!-- defines apiRequest -->
     <script src="../js/auth.js"></script>
     <script src="../js/manager/procurement.js"></script>
 
-    <!-- Shared Navbar Loader -->
+    <!-- Layout Loader -->
     <script>
-      fetch("../navbar.html")
-        .then((res) => {
-          if (!res.ok) throw new Error("Navbar failed to load");
-          return res.text();
-        })
-        .then((html) => {
-          document.getElementById("navbar-container").innerHTML = html;
-        })
-        .catch((err) => console.error("Error loading navbar:", err));
+      (async function loadLayout() {
+        try {
+          const [navbarHTML, sidebarHTML] = await Promise.all([
+            fetch("../navbar.html").then((r) => r.text()),
+            fetch("../sidebar.html").then((r) => r.text()),
+          ]);
 
-      // Auto-fill current date & time
+          document.getElementById("navbar-container").innerHTML = navbarHTML;
+          document.getElementById("sidebar-container").innerHTML = sidebarHTML;
+
+          ["navbar", "sidebar"].forEach((name) => {
+            const script = document.createElement("script");
+            script.src = `../js/${name}.js`;
+            script.defer = true;
+            document.body.appendChild(script);
+          });
+        } catch (err) {
+          console.error("Layout load failed:", err);
+        }
+      })();
+
+      /* Auto-fill date & time */
       const now = new Date();
       document.getElementById("date").value = now.toISOString().split("T")[0];
       document.getElementById("time").value = now.toTimeString().slice(0, 5);

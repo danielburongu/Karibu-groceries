@@ -1,0 +1,262 @@
+/* NAVBAR */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+/* BASE LAYOUT SAFETY */
+
+body {
+  background: var(--bg-main);
+  color: var(--dark);
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+
+  /* Prevent content under fixed navbar */
+  padding-top: 64px;
+}
+
+/* NAVBAR ROOT */
+
+.top-nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 64px;
+
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+
+  z-index: 5000; /* Higher than sidebar */
+  backdrop-filter: saturate(180%) blur(6px);
+}
+
+/* NAVBAR INNER CONTAINER */
+
+.nav-inner {
+  height: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  position: relative;
+}
+
+/* BRAND */
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-decoration: none;
+  color: var(--dark);
+
+  transition: opacity 0.2s ease;
+}
+
+.nav-brand:hover {
+  opacity: 0.85;
+}
+
+.nav-logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand-text span {
+  color: var(--primary);
+}
+
+/* ACTIONS CONTAINER */
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/*  PROFILE MENU */
+
+.profile-menu {
+  position: relative;
+  z-index: 6000;
+}
+
+.profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  padding: 0.35rem 0.85rem;
+  min-height: 40px;
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-surface);
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.profile-trigger:hover {
+  background: var(--bg-subtle);
+  box-shadow: var(--shadow-soft);
+}
+
+.profile-trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.profile-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+
+  background: var(--primary);
+  color: #fff;
+
+  font-weight: 700;
+  font-size: 0.8rem;
+
+  display: grid;
+  place-items: center;
+}
+
+/* PROFILE DROPDOWN */
+
+.profile-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.75rem);
+
+  min-width: 220px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-medium);
+
+  padding: 0.6rem;
+
+  animation: dropdownFade 0.18s ease forwards;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-dropdown-header {
+  padding: 0.5rem 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.5rem;
+}
+
+.profile-dropdown-header strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.profile-dropdown-header small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.profile-dropdown button {
+  width: 100%;
+  text-align: left;
+
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  transition: background 0.15s ease;
+}
+
+.profile-dropdown button:hover {
+  background: var(--bg-subtle);
+}
+
+.profile-dropdown button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* MOBILE MENU BUTTON */
+
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+
+  border: none;
+  background: none;
+  cursor: pointer;
+  min-height: 40px;
+
+  padding: 0 0.25rem;
+}
+
+.nav-toggle span {
+  width: 22px;
+  height: 2.5px;
+  background: var(--dark);
+  border-radius: 2px;
+
+  transition:
+    transform 0.25s ease,
+    opacity 0.2s ease;
+}
+
+/* Animated hamburger */
+body.sidebar-open .nav-toggle span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+body.sidebar-open .nav-toggle span:nth-child(2) {
+  opacity: 0;
+}
+body.sidebar-open .nav-toggle span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 991.98px) {
+  .nav-toggle {
+    display: flex;
+  }
+
+  .nav-inner {
+    padding: 0 1rem;
+  }
+}
+
+/* ACCESSIBILITY */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

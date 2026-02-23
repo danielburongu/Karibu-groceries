@@ -1,201 +1,212 @@
-// creditSale.js — Credit / Deferred Sales
-// Sales role only | Demo-friendly validation
+/**
+ * creditSale.js
+ * Sales/Manager/Director role | Branch-safe | JWT Protected
+ */
 
-/* CONFIG */
-const DEMO_MODE = true;
+document.addEventListener("DOMContentLoaded", () => {
+  /* SESSION & ROLE VALIDATION */
+  const session = JSON.parse(localStorage.getItem("kglSession") || "null");
 
-const NIN_REGEX = DEMO_MODE
-  ? /^[A-Z]{2}[A-Z0-9 ]{8,14}$/i //
-  : /^[A-Z]{2}[A-Z0-9]{12,14}$/; // strict (production)
-
-/* AUTH & ROLE PROTECTION */
-let user = null;
-try {
-  user = JSON.parse(localStorage.getItem("kglUser"));
-} catch {
-  user = null;
-}
-
-if (!user || user.role !== "sales") {
-  alert("Access denied. Sales agents only.");
-  window.location.href = "/frontend/index.html";
-  throw new Error("Unauthorized access");
-}
-
-/* DOM REFERENCES */
-const form = document.getElementById("creditSaleForm");
-
-const produceSelect = document.getElementById("produceSelect");
-const availableStockInput = document.getElementById("availableStock");
-const produceTypeInput = document.getElementById("produceType");
-const branchInput = document.getElementById("branch");
-
-const tonnageInput = document.getElementById("tonnage");
-const amountDueInput = document.getElementById("amountDue");
-
-const buyerNameInput = document.getElementById("buyerName");
-const contactInput = document.getElementById("contact");
-const ninInput = document.getElementById("nin");
-const locationInput = document.getElementById("location");
-const dueDateInput = document.getElementById("dueDate");
-const salesAgentInput = document.getElementById("salesAgent");
-
-/* INITIALIZE USER DATA*/
-salesAgentInput.value = user.displayName || user.username || "Sales Agent";
-
-/* Auto-uppercase NIN */
-ninInput.addEventListener("input", () => {
-  ninInput.value = ninInput.value.toUpperCase();
-});
-
-/*LOAD & FILTER STOCK (BRANCH SAFE) */
-let allStock = JSON.parse(localStorage.getItem("kglStock") || "[]");
-
-let branchStock = allStock.filter(
-  (item) => item.branch === user.branch && Number(item.tonnage) > 0,
-);
-
-/* POPULATE PRODUCE DROPDOWN */
-produceSelect.innerHTML = `<option value="" disabled selected>Select produce</option>`;
-
-if (branchStock.length === 0) {
-  const opt = document.createElement("option");
-  opt.textContent = "No stock available";
-  opt.disabled = true;
-  produceSelect.appendChild(opt);
-}
-
-branchStock.forEach((item) => {
-  const opt = document.createElement("option");
-  opt.value = item.produceName;
-  opt.textContent = `${item.produceName} (${item.tonnage.toLocaleString()} KG)`;
-  produceSelect.appendChild(opt);
-});
-
-let selectedStock = null;
-
-/* HANDLE PRODUCE SELECTION */
-produceSelect.addEventListener("change", () => {
-  selectedStock = branchStock.find(
-    (s) => s.produceName === produceSelect.value,
-  );
-
-  if (!selectedStock) return;
-
-  availableStockInput.value = `${selectedStock.tonnage.toLocaleString()} KG`;
-  produceTypeInput.value = selectedStock.produceType;
-  branchInput.value = selectedStock.branch.toUpperCase();
-
-  tonnageInput.value = "";
-  amountDueInput.value = "";
-});
-
-/*
-   AUTO CALCULATE AMOUNT DUE */
-tonnageInput.addEventListener("input", () => {
-  if (!selectedStock) return;
-
-  const qty = Number(tonnageInput.value);
-  if (qty > 0) {
-    amountDueInput.value = formatCurrency(qty * selectedStock.sellingPrice);
-  } else {
-    amountDueInput.value = "";
-  }
-});
-
-/*SUBMIT CREDIT SALE */
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  if (!selectedStock) {
-    alert("Please select a produce.");
+  if (
+    !session?.token ||
+    !["sales", "manager", "director"].includes(
+      session.user?.role?.toLowerCase(),
+    )
+  ) {
+    alert("Access denied.");
+    window.location.href = "/frontend/login.html";
     return;
   }
 
-  const qty = Number(tonnageInput.value);
-  if (!qty || qty <= 0 || qty > selectedStock.tonnage) {
-    alert("Invalid quantity. Check available stock.");
-    return;
+  const token = session.token;
+  const user = session.user;
+
+  const API_BASE = "http://localhost:5000/api";
+  const CREDIT_ENDPOINT = `${API_BASE}/credits`;
+
+  const NIN_REGEX = /^[A-Z]{2}[A-Z0-9]{12,14}$/i;
+
+  /* DOM REFERENCES */
+  const form = document.getElementById("creditSaleForm");
+  const produceSelect = document.getElementById("produceSelect");
+  const availableStock = document.getElementById("availableStock");
+  const produceTypeInput = document.getElementById("produceType");
+  const branchInput = document.getElementById("branch");
+  const tonnageInput = document.getElementById("tonnage");
+  const amountDueInput = document.getElementById("amountDue");
+  const buyerNameInput = document.getElementById("buyerName");
+  const contactInput = document.getElementById("contact");
+  const ninInput = document.getElementById("nin");
+  const locationInput = document.getElementById("location");
+  const dueDateInput = document.getElementById("dueDate");
+  const salesAgentInput = document.getElementById("salesAgent");
+
+  /* INIT USER CONTEXT */
+  salesAgentInput.value = user.name || "Sales Agent";
+  branchInput.value = (user.branch || "").toUpperCase();
+  branchInput.readOnly = true;
+
+  ninInput.addEventListener("input", () => {
+    ninInput.value = ninInput.value.toUpperCase().replace(/\s+/g, "");
+  });
+
+  let branchStock = [];
+  let selectedStock = null;
+
+  /* HELPERS */
+  function authHeaders() {
+    return {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
   }
 
-  const buyer = buyerNameInput.value.trim();
-  if (!/^[a-zA-Z0-9 ]{2,}$/.test(buyer)) {
-    alert("Buyer name must be at least 2 characters.");
-    return;
-  }
-
-  if (!/^07\d{8}$/.test(contactInput.value)) {
-    alert("Enter a valid Ugandan phone number (07XXXXXXXX).");
-    return;
-  }
-
-  if (!NIN_REGEX.test(ninInput.value.trim())) {
-    alert(
-      DEMO_MODE
-        ? "Invalid NIN format (example: CM1234567890)"
-        : "Invalid NIN format.",
+  function formatUSh(amount) {
+    return (
+      "USh " + new Intl.NumberFormat("en-UG").format(Math.round(amount || 0))
     );
-    return;
   }
 
-  if (!dueDateInput.value) {
-    alert("Please select a payment due date.");
-    return;
-  }
+  /* LOAD BRANCH STOCK */
+  async function loadBranchStock() {
+    try {
+      const res = await fetch(
+        `${API_BASE}/stock?branch=${encodeURIComponent(user.branch)}`,
+        {
+          headers: authHeaders(),
+        },
+      );
 
-  /* UPDATE STOCK (IMMUTABLE) */
-  allStock = allStock.map((item) => {
-    if (
-      item.branch === selectedStock.branch &&
-      item.produceName === selectedStock.produceName
-    ) {
-      return {
-        ...item,
-        tonnage: item.tonnage - qty,
-      };
+      if (!res.ok) throw new Error("Failed to load stock");
+
+      const data = await res.json();
+
+      return data.map((item) => ({
+        id: item._id,
+        produceName: item.produceName,
+        tonnage: Number(item.tonnage),
+        sellingPrice: Number(item.currentSellingPrice || 0),
+        branch: item.branch,
+        produceType: item.produceType || "-",
+      }));
+    } catch (err) {
+      alert("Unable to load stock.\n" + err.message);
+      return [];
     }
-    return item;
-  });
-
-  localStorage.setItem("kglStock", JSON.stringify(allStock));
-
-  /* SAVE CREDIT SALE*/
-  const creditSales = JSON.parse(localStorage.getItem("kglCreditSales")) || [];
-
-  creditSales.push({
-    id: crypto.randomUUID(),
-    type: "credit",
-    produceName: selectedStock.produceName,
-    produceType: selectedStock.produceType,
-    branch: selectedStock.branch,
-    tonnage: qty,
-    pricePerKg: selectedStock.sellingPrice,
-    amountDue: qty * selectedStock.sellingPrice,
-    buyerName: buyer,
-    nin: ninInput.value.trim().toUpperCase(),
-    location: locationInput.value.trim(),
-    contact: contactInput.value,
-    salesAgent: user.username,
-    dueDate: dueDateInput.value,
-    createdAt: new Date().toISOString(),
-  });
-
-  localStorage.setItem("kglCreditSales", JSON.stringify(creditSales));
-
-  /* ALERTS & RESET */
-  if (selectedStock.tonnage - qty <= 0) {
-    alert(`Stock Alert: ${selectedStock.produceName} is now OUT OF STOCK`);
   }
 
-  alert("Credit sale recorded successfully.");
-  window.location.reload();
-});
+  function populateProduceSelect() {
+    produceSelect.innerHTML = `<option disabled selected>Select produce</option>`;
 
-/* HELPERS */
-function formatCurrency(amount) {
-  return new Intl.NumberFormat("en-UG", {
-    style: "currency",
-    currency: "UGX",
-    minimumFractionDigits: 0,
-  }).format(amount || 0);
-}
+    if (!branchStock.length) {
+      produceSelect.innerHTML += `<option disabled>No stock available</option>`;
+      return;
+    }
+
+    branchStock.forEach((item) => {
+      const opt = document.createElement("option");
+      opt.value = item.id;
+      opt.textContent = `${item.produceName} (${item.tonnage.toLocaleString()} KG)`;
+      produceSelect.appendChild(opt);
+    });
+  }
+
+  /* INITIAL LOAD */
+  (async () => {
+    branchStock = await loadBranchStock();
+    populateProduceSelect();
+  })();
+
+  /* PRODUCE SELECTION */
+  produceSelect.addEventListener("change", () => {
+    selectedStock = branchStock.find((s) => s.id === produceSelect.value);
+    if (!selectedStock) return;
+
+    availableStock.value = `${selectedStock.tonnage.toLocaleString()} KG`;
+    produceTypeInput.value = selectedStock.produceType;
+    tonnageInput.value = "";
+    amountDueInput.value = "";
+  });
+
+  /* AUTO CALCULATE PREVIEW */
+  tonnageInput.addEventListener("input", () => {
+    if (!selectedStock) return;
+
+    let qty = Number(tonnageInput.value) || 0;
+
+    if (qty > selectedStock.tonnage) {
+      alert("Cannot exceed available stock.");
+      qty = selectedStock.tonnage;
+      tonnageInput.value = qty;
+    }
+
+    amountDueInput.value = formatUSh(qty * selectedStock.sellingPrice);
+  });
+
+  /* SUBMIT CREDIT SALE */
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (!selectedStock) return alert("Select produce first.");
+
+    const qty = Number(tonnageInput.value);
+    if (qty <= 0 || qty > selectedStock.tonnage)
+      return alert("Invalid quantity.");
+
+    if (!NIN_REGEX.test(ninInput.value.trim()))
+      return alert("Invalid NIN format.");
+
+    const due = new Date(dueDateInput.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (due <= today) return alert("Due date must be in the future.");
+
+    const payload = {
+      produceId: selectedStock.id,
+      tonnage: qty,
+      customerName: buyerNameInput.value.trim(),
+      contact: contactInput.value.trim(),
+      nin: ninInput.value.trim(),
+      location: locationInput.value.trim(),
+      dueDate: due.toISOString(),
+    };
+
+    try {
+      const res = await fetch(CREDIT_ENDPOINT, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Credit sale failed");
+      }
+
+      const createdCredit = data.credit;
+
+      alert(
+        `Credit recorded successfully!\n\n` +
+          `Amount Due: USh ${createdCredit.amountDue.toLocaleString()}\n` +
+          `Due Date: ${new Date(createdCredit.dueDate).toLocaleDateString("en-GB")}`,
+      );
+
+      /* Reset UI */
+      form.reset();
+      selectedStock = null;
+
+      branchStock = await loadBranchStock();
+      populateProduceSelect();
+
+      branchInput.value = (user.branch || "").toUpperCase();
+      availableStock.value = "";
+      produceTypeInput.value = "";
+      amountDueInput.value = "";
+    } catch (err) {
+      console.error("Credit submission error:", err);
+      alert("Failed:\n" + err.message);
+    }
+  });
+});

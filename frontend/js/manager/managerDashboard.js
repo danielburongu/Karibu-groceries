@@ -1,69 +1,70 @@
-// managerDashboard.js — Manager Dashboard Logic
+// managerDashboard.js Manager Dashboard
 
-/* AUTH & ROLE PROTECTION */
-let user = null;
-try {
-  user = JSON.parse(localStorage.getItem("kglUser"));
-} catch {
-  user = null;
-}
+document.addEventListener("DOMContentLoaded", async () => {
+  const session = JSON.parse(localStorage.getItem("kglSession") || "null");
 
-if (!user || user.role !== "manager") {
-  alert("Access denied. Managers only.");
-  window.location.href = "/frontend/index.html";
-  throw new Error("Unauthorized access");
-}
-
-/* DOM READY */
-document.addEventListener("DOMContentLoaded", () => {
-  /* USER CONTEXT */
-  const nameEl = document.getElementById("managerName");
-  const branchEl = document.getElementById("managerBranch");
-
-  if (nameEl) {
-    nameEl.textContent = user.displayName || user.username || "Manager";
+  if (!session?.token) {
+    redirectToLogin();
+    return;
   }
 
-  if (branchEl) {
-    branchEl.textContent = user.branch
-      ? user.branch.charAt(0).toUpperCase() + user.branch.slice(1)
-      : "—";
+  const token = session.token;
+  const API = "http://localhost:5000/api/reports/manager-summary";
+
+  function redirectToLogin() {
+    localStorage.removeItem("kglSession");
+    window.location.href = "/frontend/login.html";
   }
 
-  /* NAVIGATION ACTIONS*/
-  const navMap = [
-    {
-      id: "openProcurement",
-      url: "/pages/procurement.html",
-    },
-    {
-      id: "viewStock",
-      url: "/pages/stock.html",
-    },
-    {
-      id: "managerSales",
-      url: "/pages/cash-sale.html",
-    },
-    {
-      id: "viewSalesHistory",
-      url: "/pages/sales-history.html",
-    },
-  ];
+  function formatCurrency(amount = 0) {
+    return new Intl.NumberFormat("en-UG", {
+      style: "currency",
+      currency: "UGX",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  }
 
-  navMap.forEach(({ id, url }) => {
+  function setText(id, value) {
     const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener("click", () => {
-        window.location.href = url;
-      });
-    }
-  });
-});
-
-/* SESSION EXPIRY HANDLING*/
-window.addEventListener("storage", (e) => {
-  if (e.key === "kglUser" && !e.newValue) {
-    alert("Session expired. Please login again.");
-    window.location.href = "/index.html";
+    if (el) el.textContent = value;
   }
+
+  async function loadDashboard() {
+    try {
+      const res = await fetch(`${API}?range=30`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.status === 401) {
+        redirectToLogin();
+        return;
+      }
+
+      if (!res.ok) throw new Error("Failed");
+
+      const data = await res.json();
+
+      setText("managerBranch", data.branch);
+
+      setText("branchRevenue", formatCurrency(data.financials.revenue));
+
+      setText("branchCost", formatCurrency(data.financials.procurementCost));
+
+      setText("branchProfit", formatCurrency(data.financials.profit));
+
+      setText("branchMargin", `${data.financials.margin}%`);
+
+      setText("branchCredit", formatCurrency(data.totals.creditOutstanding));
+
+      setText("branchTonnage", data.totals.tonnage);
+
+      setText("branchTransactions", data.totals.transactions);
+    } catch (err) {
+      console.error("Manager Dashboard Error:", err);
+    }
+  }
+
+  loadDashboard();
 });

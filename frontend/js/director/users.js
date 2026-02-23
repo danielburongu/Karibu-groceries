@@ -1,190 +1,272 @@
-// users.js — Director User Management
+// director/users.js Director User Management
+// Backend authoritative | JWT protected | Hardened UX
 
 document.addEventListener("DOMContentLoaded", () => {
-  /* AUTH & ROLE PROTECTION */
-  let currentUser = null;
-  try {
-    currentUser = JSON.parse(localStorage.getItem("kglUser"));
-  } catch {
-    currentUser = null;
-  }
+  /* SESSION VALIDATION */
+  const session = JSON.parse(localStorage.getItem("kglSession") || "null");
 
-  if (!currentUser || currentUser.role !== "director") {
-    alert("Access denied. Directors only.");
-    window.location.href = "/frontend/index.html";
+  if (!session || !session.token || !session.user) {
+    redirectToLogin();
     return;
   }
+
+  if (session.user.role !== "director") {
+    alert("Access denied. Directors only.");
+    redirectToLogin();
+    return;
+  }
+
+  const TOKEN = session.token;
+  const CURRENT_USER_ID = session.user._id;
+  const API_BASE = "http://localhost:5000/api";
 
   /* DOM REFERENCES */
   const usersList = document.getElementById("usersList");
   const userForm = document.getElementById("userForm");
-  const modalTitle = document.getElementById("addUserModalLabel");
-  const editUserId = document.getElementById("editUserId");
+  const userModalEl = document.getElementById("addUserModal");
+
+  const totalUsersEl = document.getElementById("totalUsers");
+  const managerCountEl = document.getElementById("managerCount");
+  const salesCountEl = document.getElementById("salesCount");
+  const branchCountEl = document.getElementById("branchCount");
+
+  const searchInput = document.getElementById("userSearch");
+
+  let users = [];
+  let filteredUsers = [];
 
   /* HELPERS */
-  const safeParse = (key, fallback = []) => {
-    try {
-      const data = JSON.parse(localStorage.getItem(key));
-      return Array.isArray(data) ? data : fallback;
-    } catch {
-      return fallback;
-    }
-  };
+  function redirectToLogin() {
+    localStorage.removeItem("kglSession");
+    window.location.href = "/frontend/login.html";
+  }
+
+  function authHeaders() {
+    return {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${TOKEN}`,
+    };
+  }
 
   const capitalize = (text = "") =>
-    text.charAt(0).toUpperCase() + text.slice(1);
+    text ? text.charAt(0).toUpperCase() + text.slice(1) : "-";
 
   const roleLabel = (role) =>
     ({
+      director: "Director",
       manager: "Manager",
       sales: "Sales Agent",
-      director: "Director",
     })[role] || capitalize(role);
 
-  /* LOAD USERS */
-  function loadUsers() {
-    const users = safeParse("kglStaff");
+  function showLoading() {
+    usersList.innerHTML = `
+      <div class="text-center text-muted py-5">
+        Loading users...
+      </div>
+    `;
+  }
 
-    if (users.length === 0) {
+  /* CONTEXT BAR */
+  function renderContext() {
+    const managers = users.filter((u) => u.role === "manager");
+    const sales = users.filter((u) => u.role === "sales");
+    const branches = new Set(
+      users.filter((u) => u.branch).map((u) => u.branch),
+    );
+
+    totalUsersEl.textContent = users.length;
+    managerCountEl.textContent = managers.length;
+    salesCountEl.textContent = sales.length;
+    branchCountEl.textContent = branches.size || "-";
+  }
+
+  /* SEARCH FILTER */
+  function applyFilter() {
+    if (!searchInput) {
+      filteredUsers = [...users];
+      return;
+    }
+
+    const query = searchInput.value.toLowerCase();
+
+    filteredUsers = users.filter(
+      (u) =>
+        u.name.toLowerCase().includes(query) ||
+        (u.email && u.email.toLowerCase().includes(query)) ||
+        (u.branch && u.branch.toLowerCase().includes(query)),
+    );
+  }
+
+  /* RENDER USERS */
+  function renderUsers() {
+    applyFilter();
+
+    if (!filteredUsers.length) {
       usersList.innerHTML = `
         <div class="text-center text-muted py-5">
-          <h4>No staff accounts found</h4>
-          <p>Click <strong>“Add New User”</strong> to create staff access.</p>
+          <h5>No matching users found</h5>
         </div>
       `;
       return;
     }
 
-    usersList.innerHTML = users
-      .map((u, index) => {
-        return `
-          <div class="user-card mb-3">
-            <div class="d-flex justify-content-between align-items-start">
-              <div>
-                <h5 class="mb-1">${u.username}</h5>
-                <p class="mb-0">
-                  <span class="role-badge role-${u.role} me-2">
-                    ${roleLabel(u.role)}
-                  </span>
-                  <strong>Branch:</strong> ${capitalize(u.branch)}
-                </p>
-              </div>
+    usersList.innerHTML = filteredUsers
+      .map((u) => {
+        const isActive = u.isActive !== false;
+        const isSelf = u._id === CURRENT_USER_ID;
 
-              <div class="d-flex gap-2">
-                <button
-                  class="btn btn-sm btn-edit"
-                  onclick="editUser(${index})"
-                >
-                  Edit
-                </button>
-                <button
-                  class="btn btn-sm btn-delete"
-                  onclick="deleteUser(${index})"
-                >
-                  Delete
-                </button>
-              </div>
+        return `
+        <div class="summary-card mb-3">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+
+            <div>
+              <h5 class="mb-1">${u.name}</h5>
+
+              <p class="mb-1 small text-muted">
+                ${roleLabel(u.role)} • ${
+                  u.role === "director" ? "All Branches" : capitalize(u.branch)
+                }
+              </p>
+
+              <span class="status-pill ${
+                isActive ? "status-active" : "status-disabled"
+              }">
+                ${isActive ? "Active" : "Disabled"}
+              </span>
             </div>
+
+            <div class="user-actions">
+
+              ${
+                isSelf
+                  ? `
+                <span class="badge bg-secondary">You</span>
+              `
+                  : `
+                <button
+                  class="btn-inline ${isActive ? "danger" : ""} btn-toggle"
+                  data-id="${u._id}"
+                >
+                  ${isActive ? "Disable" : "Activate"}
+                </button>
+              `
+              }
+            </div>
+
           </div>
-        `;
+        </div>
+      `;
       })
       .join("");
   }
 
-  /* ADD / EDIT USER */
-  userForm.addEventListener("submit", (e) => {
+  /* FETCH USERS */
+  async function fetchUsers() {
+    showLoading();
+
+    try {
+      const res = await fetch(`${API_BASE}/users`, {
+        headers: authHeaders(),
+      });
+
+      if (res.status === 401) {
+        redirectToLogin();
+        return;
+      }
+
+      if (!res.ok) throw new Error("Failed to load users");
+
+      users = await res.json();
+      renderContext();
+      renderUsers();
+    } catch (err) {
+      console.error("FETCH USERS ERROR:", err);
+      usersList.innerHTML = `
+        <div class="text-center text-danger py-5">
+          Failed to load users
+        </div>
+      `;
+    }
+  }
+
+  /* CREATE USER */
+  userForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const usernameInput = document.getElementById("modalUsername");
+    const name = document.getElementById("modalName").value.trim();
+    const email = document.getElementById("modalEmail").value.trim();
     const role = document.getElementById("modalRole").value;
     const branch = document.getElementById("modalBranch").value;
 
-    const username = usernameInput.value.trim().toLowerCase();
-
-    if (username.length < 3) {
-      alert("Username must be at least 3 characters.");
+    if (!name || !email || !role) {
+      alert("All fields are required.");
       return;
     }
 
-    if (!branch) {
-      alert("Branch is required.");
-      return;
+    try {
+      const res = await fetch(`${API_BASE}/users`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ name, email, role, branch }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Failed to create user");
+        return;
+      }
+
+      alert(`User created.\nTemporary Password: ${data.temporaryPassword}`);
+
+      bootstrap.Modal.getInstance(userModalEl)?.hide();
+      userForm.reset();
+      fetchUsers();
+    } catch (err) {
+      console.error("CREATE USER ERROR:", err);
+      alert("Network error.");
     }
-
-    let users = safeParse("kglStaff");
-    const userId = editUserId.value;
-
-    const duplicate = users.find(
-      (u, i) => u.username === username && i.toString() !== userId,
-    );
-
-    if (duplicate) {
-      alert("A user with this username already exists.");
-      return;
-    }
-
-    const userData = {
-      username,
-      role,
-      branch,
-      active: true,
-      createdAt: new Date().toISOString(),
-      createdBy: currentUser.username,
-    };
-
-    if (userId === "") {
-      users.push(userData);
-    } else {
-      if (!confirm("Save changes to this user?")) return;
-      users[userId] = { ...users[userId], ...userData };
-    }
-
-    localStorage.setItem("kglStaff", JSON.stringify(users));
-
-    bootstrap.Modal.getInstance(document.getElementById("addUserModal")).hide();
-
-    userForm.reset();
-    editUserId.value = "";
-    modalTitle.textContent = "Add New User";
-
-    loadUsers();
   });
 
-  /* EDIT USER */
-  window.editUser = function (index) {
-    const users = safeParse("kglStaff");
-    const u = users[index];
-    if (!u) return;
+  /* TOGGLE USER STATUS */
+  usersList.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".btn-toggle");
+    if (!btn) return;
 
-    document.getElementById("modalUsername").value = u.username;
-    document.getElementById("modalRole").value = u.role;
-    document.getElementById("modalBranch").value = u.branch;
+    const userId = btn.dataset.id;
 
-    editUserId.value = index;
-    modalTitle.textContent = "Edit User";
+    if (!confirm("Change this user's status?")) return;
 
-    new bootstrap.Modal(document.getElementById("addUserModal")).show();
-  };
+    try {
+      const res = await fetch(`${API_BASE}/users/${userId}/toggle`, {
+        method: "PATCH",
+        headers: authHeaders(),
+      });
 
-  /* DELETE USER (SAFE) */
-  window.deleteUser = function (index) {
-    const users = safeParse("kglStaff");
-    const u = users[index];
+      const data = await res.json();
 
-    if (!u) return;
+      if (!res.ok) {
+        alert(data.message || "Action failed");
+        return;
+      }
 
-    if (u.username === currentUser.username) {
-      alert("You cannot delete your own account.");
-      return;
+      fetchUsers();
+    } catch (err) {
+      console.error("TOGGLE ERROR:", err);
+      alert("Network error.");
     }
+  });
 
-    if (!confirm(`Delete user "${u.username}"?`)) return;
+  /* SEARCH LISTENER */
+  searchInput?.addEventListener("input", renderUsers);
 
-    users.splice(index, 1);
-    localStorage.setItem("kglStaff", JSON.stringify(users));
-    loadUsers();
-  };
+  /* MULTI-TAB SYNC */
+  window.addEventListener("storage", (e) => {
+    if (e.key === "kglSession" && !e.newValue) {
+      redirectToLogin();
+    }
+  });
 
-  /* INIT*/
-  loadUsers();
+  /* INIT */
+  fetchUsers();
 });

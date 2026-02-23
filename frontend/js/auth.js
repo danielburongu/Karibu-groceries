@@ -1,163 +1,212 @@
-// auth.js — Authentication & Role Handling
+// auth.js JWT Authentication & Session Management
 
+const API_BASE = "http://localhost:5000/api";
+
+/* ALERT HELPER */
+function showAlert(message, type = "danger") {
+  const container = document.getElementById("alertContainer");
+  if (!container) return;
+
+  const alert = document.createElement("div");
+  alert.className = `alert alert-${type} alert-dismissible fade show`;
+  alert.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+
+  container.innerHTML = "";
+  container.appendChild(alert);
+
+  setTimeout(() => alert.classList.remove("show"), 6000);
+}
+
+/* =========================================================
+   LOGIN + SESSION GUARD
+========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
-  /* SAFE USER LOAD */
-  let user = null;
-  try {
-    user = JSON.parse(localStorage.getItem("kglUser"));
-  } catch {
-    user = null;
-  }
-
   const loginForm = document.getElementById("loginForm");
-  const roleSelect = document.getElementById("role");
-  const branchSelect = document.getElementById("branch");
+  const loginBtn = document.getElementById("loginBtn");
 
-  /* LOGIN PAGE LOGIC */
+  /* ===========================
+     LOGIN HANDLER
+  =========================== */
   if (loginForm) {
-    if (roleSelect && branchSelect) {
-      roleSelect.addEventListener("change", () => {
-        const wrapper = branchSelect.closest(".form-floating");
-
-        if (roleSelect.value === "director") {
-          branchSelect.value = "";
-          branchSelect.disabled = true;
-          if (wrapper) wrapper.style.display = "none";
-        } else {
-          branchSelect.disabled = false;
-          if (wrapper) wrapper.style.display = "block";
-        }
-      });
-    }
-
-    loginForm.addEventListener("submit", (e) => {
+    loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const username = document
-        .getElementById("username")
-        .value.trim()
-        .toLowerCase();
+      loginBtn.disabled = true;
+      loginBtn.innerHTML =
+        '<span class="spinner-border spinner-border-sm me-2"></span> Signing in...';
 
-      const role = roleSelect?.value;
-      const branch = branchSelect?.value || null;
+      const email = document.getElementById("email")?.value.trim();
+      const password = document.getElementById("password")?.value;
 
-      if (username.length < 3) {
-        showAlert("Username must be at least 3 characters long.");
+      if (!email || !password) {
+        showAlert("Email and password are required.");
+        resetButton();
         return;
       }
 
-      if (!role) {
-        showAlert("Please select your role.");
-        return;
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "Login failed");
+        }
+
+        const session = {
+          token: data.token,
+          user: data.user,
+          loginTime: new Date().toISOString(),
+        };
+
+        localStorage.setItem("kglSession", JSON.stringify(session));
+
+        showAlert("Login successful!", "success");
+
+        setTimeout(() => {
+          redirectByRole(data.user.role?.toLowerCase());
+        }, 800);
+      } catch (err) {
+        console.error("LOGIN ERROR:", err);
+        showAlert(err.message || "Server error. Try again later.");
+      } finally {
+        resetButton();
       }
-
-      if (role !== "director" && !branch) {
-        showAlert("Please select your branch.");
-        return;
-      }
-
-      const session = {
-        username,
-        displayName: username.charAt(0).toUpperCase() + username.slice(1),
-        role,
-        branch: role === "director" ? null : branch,
-        loginTime: new Date().toISOString(),
-      };
-
-      localStorage.setItem("kglUser", JSON.stringify(session));
-      window.location.href = "./dashboard.html";
     });
-
-    function showAlert(message) {
-      const existing = document.querySelector(".alert");
-      if (existing) existing.remove();
-
-      const alert = document.createElement("div");
-      alert.className =
-        "alert alert-danger alert-dismissible fade show mt-4 mb-0";
-      alert.innerHTML = `
-        <strong>Error:</strong> ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      `;
-      loginForm.parentElement.insertBefore(alert, loginForm);
-    }
-
-    return; // stop auth.js here on login page
   }
 
-  /* PROTECTED PAGE GUARD */
-  if (!user || !user.role) {
-    window.location.href = "./index.html";
+  /* ===========================
+     SESSION GUARD (non-login pages)
+  =========================== */
+  const currentPath = window.location.pathname;
+
+  if (currentPath.includes("login.html")) return;
+
+  const session = getSession();
+
+  if (!session || !session.token) {
+    redirectToLogin();
     return;
   }
 
-  /* 
-     <body data-role="director">
-     <body data-roles="manager,sales">
-   */
-  const singleRole = document.body.dataset.role;
-  const multipleRoles = document.body.dataset.roles;
+  populateUI(session.user);
+  enforceRoleAccess(session.user.role?.toLowerCase());
+  attachLogout();
 
-  if (singleRole && user.role !== singleRole) {
-    alert("Access denied.");
-    window.location.href = "./dashboard.html";
-    return;
+  function resetButton() {
+    loginBtn.disabled = false;
+    loginBtn.textContent = "Login to Dashboard";
   }
+});
 
-  if (multipleRoles) {
-    const allowed = multipleRoles.split(",").map((r) => r.trim());
-    if (!allowed.includes(user.role)) {
-      alert("Access denied.");
-      window.location.href = "./dashboard.html";
+/* =========================================================
+   SESSION UTILITIES
+========================================================= */
+function getSession() {
+  try {
+    const raw = localStorage.getItem("kglSession");
+    if (!raw) return null;
+    const session = JSON.parse(raw);
+    if (!session.token || !session.user) return null;
+    return session;
+  } catch {
+    localStorage.removeItem("kglSession");
+    return null;
+  }
+}
+
+/* =========================================================
+   REDIRECTS (ABSOLUTE PATHS FOR CURRENT SETUP)
+========================================================= */
+function redirectToLogin() {
+  localStorage.removeItem("kglSession");
+  window.location.href = "/frontend/login.html";
+}
+
+function redirectByRole(role) {
+  let path;
+
+  switch (role) {
+    case "director":
+      path = "/frontend/pages/director/dashboard.html";
+      break;
+
+    case "manager":
+    case "sales":
+      path = "/frontend/dashboard.html";
+      break;
+
+    default:
+      showAlert("Invalid role assigned.");
+      redirectToLogin();
       return;
-    }
   }
 
-  /* USER INFO  */
-  const setText = (id, value) => {
+  window.location.href = path;
+}
+
+/* ROLE ENFORCEMENT */
+function enforceRoleAccess(role) {
+  const allowed = document.body.dataset.role;
+  if (!allowed) return;
+
+  const allowedRoles = allowed
+    .toLowerCase()
+    .split(" ")
+    .map((r) => r.trim());
+
+  if (!allowedRoles.includes(role)) {
+    alert("You do not have permission to access this page.");
+    redirectByRole(role);
+  }
+}
+
+/* UI POPULATION */
+function populateUI(user) {
+  const set = (id, val) => {
     const el = document.getElementById(id);
-    if (el) el.textContent = value;
+    if (el) el.textContent = val || "-";
   };
 
-  setText("navUserName", user.displayName);
-  setText("dropdownUserName", user.displayName);
-  setText(
-    "dropdownUserRole",
-    user.role.charAt(0).toUpperCase() + user.role.slice(1),
-  );
-  setText("profileAvatar", user.displayName.charAt(0).toUpperCase());
+  const name = user.name || user.email || "User";
+
+  set("navUserName", name);
+  set("dropdownUserName", name);
+  set("dropdownUserRole", capitalize(user.role || ""));
 
   const branchEl = document.getElementById("userBranch");
   if (branchEl) {
-    branchEl.textContent = user.branch
-      ? user.branch.toUpperCase()
-      : "All Branches";
+    branchEl.textContent =
+      user.role?.toLowerCase() === "director"
+        ? "All Branches"
+        : (user.branch || "-").toUpperCase();
   }
 
-  const dateEl = document.getElementById("currentDate");
-  if (dateEl) {
-    dateEl.textContent = new Date().toLocaleDateString("en-GB", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
+  const avatar = document.getElementById("profileAvatar");
+  if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+}
+
+/* LOGOUT HANDLER */
+function attachLogout() {
+  document
+    .querySelectorAll("[data-logout], #logoutBtn, .logout-link")
+    .forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.removeItem("kglSession");
+        redirectToLogin();
+      });
     });
-  }
+}
 
-  /* ROLE-BASED VISIBILITY */
-  applyRoleVisibility(user.role);
-});
-
-/* ROLE VISIBILITY  */
-function applyRoleVisibility(role) {
-  const map = {
-    director: ["role-director"],
-    manager: ["role-manager"],
-    sales: ["role-sales"],
-  };
-
-  document.querySelectorAll("[class*='role-']").forEach((el) => {
-    const allowed = map[role]?.some((cls) => el.classList.contains(cls));
-    el.style.display = allowed ? "" : "none";
-  });
+/* UTIL */
+function capitalize(str = "") {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }

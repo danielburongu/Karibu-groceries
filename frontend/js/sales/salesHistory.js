@@ -1,178 +1,305 @@
-/* SESSION CHECK */
-let user = null;
+/* salesHistory.js */
 
-try {
-  user = JSON.parse(localStorage.getItem("kglUser"));
-} catch {
-  user = null;
-}
+document.addEventListener("DOMContentLoaded", () => {
+  /* SESSION VALIDATION */
+  const session = JSON.parse(localStorage.getItem("kglSession") || "null");
 
-if (!user || !user.role) {
-  window.location.href = "/frontend/index.html";
-}
-
-/* LOAD DATA*/
-const cashSales = JSON.parse(localStorage.getItem("kglSales") || "[]");
-const creditSales = JSON.parse(localStorage.getItem("kglCreditSales") || "[]");
-
-/* BUTTON CONTROL */
-const cashBtn = document.getElementById("cashBtn");
-const creditBtn = document.getElementById("creditBtn");
-const exportBtn = document.getElementById("exportCsvBtn");
-
-if (user.role === "director") {
-  cashBtn && (cashBtn.style.display = "none");
-  creditBtn && (creditBtn.style.display = "none");
-  exportBtn && (exportBtn.style.display = "none");
-}
-
-/* DIRECTOR VIEW (SUMMARY ONLY) */
-if (user.role === "director") {
-  const summary = document.getElementById("directorSummary");
-  summary && summary.classList.remove("d-none");
-
-  const totalCash = cashSales.reduce((s, x) => s + (x.amountPaid || 0), 0);
-
-  const totalCredit = creditSales.reduce((s, x) => s + (x.amountDue || 0), 0);
-
-  const totalTonnage =
-    cashSales.reduce((s, x) => s + (x.tonnageSold || 0), 0) +
-    creditSales.reduce((s, x) => s + (x.tonnage || 0), 0);
-
-  setText("totalCash", formatCurrency(totalCash));
-  setText("totalCredit", formatCurrency(totalCredit));
-  setText("totalTonnage", `${totalTonnage.toLocaleString()} KG`);
-  setText("totalTransactions", cashSales.length + creditSales.length);
-}
-
-/* TABLE VIEW (MANAGER / SALES)*/
-document.getElementById("salesTableSection")?.classList.remove("d-none");
-
-const tableBody = document.getElementById("salesTableBody");
-const emptyState = document.getElementById("emptyState");
-const recordCount = document.getElementById("recordCount");
-
-const branchFilter = document.getElementById("branchFilter");
-const typeFilter = document.getElementById("typeFilter");
-
-let allSales = [];
-
-/* CASH SALES*/
-cashSales.forEach((s) => {
-  allSales.push({
-    date: `${s.date || ""} ${s.time || ""}`.trim() || "-",
-    produce: s.produceName || "-",
-    branch: (s.branch || "").toLowerCase(),
-    kg: s.tonnageSold || 0,
-    amount: s.amountPaid || 0,
-    buyer: s.buyerName || "-",
-    agent: s.salesAgent || "-",
-    type: "cash",
-  });
-});
-
-/* CREDIT SALES */
-creditSales.forEach((s) => {
-  allSales.push({
-    date: s.createdAt ? new Date(s.createdAt).toLocaleString("en-GB") : "-",
-    produce: s.produceName || "-",
-    branch: (s.branch || "").toLowerCase(),
-    kg: s.tonnage || 0,
-    amount: s.amountDue || 0,
-    buyer: s.buyerName || "-",
-    agent: s.salesAgent || "-",
-    type: "credit",
-  });
-});
-
-/* SALES AGENT VIEW (OWN SALES) */
-if (user.role === "sales") {
-  exportBtn && (exportBtn.style.display = "none");
-
-  allSales = allSales.filter(
-    (s) => s.agent && s.agent.toLowerCase() === user.username.toLowerCase(),
-  );
-}
-
-/* RENDER TABLE */
-function render(data) {
-  if (!tableBody || !emptyState) return;
-
-  tableBody.innerHTML = "";
-
-  if (data.length === 0) {
-    showEmpty(
-      "No records found",
-      "Sales transactions will appear here once recorded.",
-    );
-    recordCount.textContent = "0 records";
+  if (!session?.token || !["manager", "director"].includes(session.user.role)) {
+    redirectToLogin();
     return;
   }
 
-  emptyState.classList.add("d-none");
-  recordCount.textContent = `${data.length} record(s)`;
+  const { token, user } = session;
+  const API = "http://localhost:5000/api/sales";
 
-  data.forEach((s) => {
-    tableBody.innerHTML += `
+  /* DOM REFERENCES */
+
+  const tableBody = document.getElementById("salesTableBody");
+  const emptyState = document.getElementById("emptyState");
+  const recordCount = document.getElementById("recordCount");
+  const paginationEl = document.getElementById("pagination");
+  const directorKpis = document.getElementById("directorKpis");
+
+  const branchFilter = document.getElementById("branchFilter");
+  const typeFilter = document.getElementById("typeFilter");
+  const pageSizeSelect = document.getElementById("pageSize");
+  const exportBtn = document.getElementById("exportCsvBtn");
+
+  const totalCashEl = document.getElementById("totalCash");
+  const totalCreditEl = document.getElementById("totalCredit");
+  const totalTonnageEl = document.getElementById("totalTonnage");
+  const totalTransactionsEl = document.getElementById("totalTransactions");
+
+  let currentPage = 1;
+  let pageSize = Number(pageSizeSelect?.value || 10);
+
+  /* HELPERS */
+  function redirectToLogin() {
+    localStorage.removeItem("kglSession");
+    window.location.href = "/frontend/login.html";
+  }
+
+  function authHeaders() {
+    return { Authorization: `Bearer ${token}` };
+  }
+
+  function formatUSh(v = 0) {
+    return "USh " + new Intl.NumberFormat("en-UG").format(Math.round(v || 0));
+  }
+
+  function capitalize(text = "") {
+    return text ? text.charAt(0).toUpperCase() + text.slice(1) : "-";
+  }
+
+  function formatSaleDate(isoString) {
+    if (!isoString) return "-";
+    const d = new Date(isoString);
+    if (isNaN(d)) return "-";
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const saleDay = new Date(d);
+    saleDay.setHours(0, 0, 0, 0);
+
+    if (saleDay.getTime() === today.getTime()) {
+      return `Today at ${d.toLocaleTimeString("en-UG", { timeStyle: "short" })}`;
+    }
+
+    return d.toLocaleString("en-UG", {
+      timeZone: "Africa/Kampala",
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  }
+
+  function showLoading() {
+    tableBody.innerHTML = `
       <tr>
-        <td>${s.date}</td>
-        <td>${s.produce}</td>
-        <td>${capitalize(s.branch)}</td>
-        <td class="text-end">${s.kg.toLocaleString()}</td>
-        <td class="text-end">${formatCurrency(s.amount)}</td>
-        <td>${s.buyer}</td>
-        <td>${s.agent}</td>
-        <td class="type ${s.type}">${s.type}</td>
+        <td colspan="8" class="text-center py-4">
+          <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+          Loading transactions...
+        </td>
       </tr>
     `;
-  });
-}
+  }
 
-/* FILTER HANDLING*/
-function applyFilters() {
-  let filtered = [...allSales];
+  function showError(message = "Failed to load data.") {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="8" class="text-center py-4 text-danger">
+          ${message}
+        </td>
+      </tr>
+    `;
+  }
 
-  if (branchFilter?.value) {
-    filtered = filtered.filter(
-      (s) => s.branch === branchFilter.value.toLowerCase(),
+  /* FETCH SALES */
+  async function fetchSales() {
+    showLoading();
+
+    try {
+      const params = {
+        page: currentPage,
+        limit: pageSize,
+        type: typeFilter?.value || "",
+      };
+
+      if (user.role === "director" && branchFilter?.value) {
+        params.branch = branchFilter.value;
+      }
+
+      const query = new URLSearchParams(params);
+
+      const res = await fetch(`${API}?${query}`, {
+        headers: authHeaders(),
+        credentials: "include", // if using cookies in future
+      });
+
+      if (res.status === 401 || res.status === 403) return redirectToLogin();
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+
+      const records = data.data || data.records || data.sales || [];
+      const totalPages = data.pagination?.totalPages || data.totalPages || 1;
+      const totalRecords =
+        data.pagination?.totalRecords || data.totalRecords || records.length;
+      const summary = data.summary || {};
+
+      renderTable(records);
+      renderPagination(totalPages);
+      updateKPIs(summary);
+
+      recordCount.textContent = `${totalRecords.toLocaleString()} records`;
+    } catch (err) {
+      console.error("SALES FETCH ERROR:", err);
+      showError("Failed to load sales data. Please check your connection.");
+    }
+  }
+
+  /* RENDER TABLE */
+  function renderTable(rows) {
+    tableBody.innerHTML = "";
+
+    if (!rows?.length) {
+      emptyState.classList.remove("d-none");
+      return;
+    }
+
+    emptyState.classList.add("d-none");
+
+    const fragment = document.createDocumentFragment();
+
+    rows.forEach((s) => {
+      const tr = document.createElement("tr");
+
+      const saleType = (s.type || "cash").toLowerCase();
+      if (saleType === "credit") {
+        tr.classList.add("table-warning-subtle");
+      }
+
+      const amount = s.amountPaid ?? s.amount ?? s.totalAmount ?? 0;
+      const kg = s.kg ?? s.tonnage ?? s.tonnageSold ?? s.quantityKg ?? 0;
+
+      tr.innerHTML = `
+        <td>${formatSaleDate(s.createdAt || s.date)}</td>
+        <td>${s.produce || s.produceName || s.item || "-"}</td>
+        <td>${capitalize(s.branch || s.location)}</td>
+        <td class="text-end">${Number(kg).toLocaleString()}</td>
+        <td class="text-end fw-semibold">${formatUSh(amount)}</td>
+        <td>${s.buyer || s.customer || "-"}</td>
+        <td>${s.agent || s.createdBy || s.user || "-"}</td>
+        <td>
+          <span class="status-pill ${saleType === "cash" ? "status-active" : "status-low"}">
+            ${capitalize(saleType)}
+          </span>
+        </td>
+      `;
+
+      fragment.appendChild(tr);
+    });
+
+    tableBody.appendChild(fragment);
+  }
+
+  /* PAGINATION */
+  function renderPagination(totalPages) {
+    paginationEl.innerHTML = "";
+    if (totalPages <= 1) return;
+
+    const createBtn = (label, page, active = false, disabled = false) => {
+      const li = document.createElement("li");
+      li.className = `page-item ${active ? "active" : ""} ${disabled ? "disabled" : ""}`;
+
+      const btn = document.createElement("button");
+      btn.className = "page-link";
+      btn.textContent = label;
+      if (!disabled) {
+        btn.onclick = () => {
+          currentPage = page;
+          fetchSales();
+        };
+      }
+
+      li.appendChild(btn);
+      return li;
+    };
+
+    if (currentPage > 1) {
+      paginationEl.appendChild(createBtn("Previous", currentPage - 1));
+    }
+
+    // Show fewer page numbers on small screens
+    const maxVisible = window.innerWidth < 768 ? 5 : 7;
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible - 1);
+
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+
+    for (let i = start; i <= end; i++) {
+      paginationEl.appendChild(createBtn(i, i, i === currentPage));
+    }
+
+    if (currentPage < totalPages) {
+      paginationEl.appendChild(createBtn("Next", currentPage + 1));
+    }
+  }
+
+  /* UPDATE KPIs (Director Only) */
+
+  function updateKPIs(summary) {
+    if (!totalTransactionsEl) return;
+
+    totalCashEl.textContent = formatUSh(summary.cashTotal || summary.cash || 0);
+    totalCreditEl.textContent = formatUSh(
+      summary.creditTotal || summary.credit || 0,
     );
+    totalTonnageEl.textContent = `${(summary.totalKg || summary.kg || 0).toLocaleString()} KG`;
+    totalTransactionsEl.textContent = (
+      summary.transactions || 0
+    ).toLocaleString();
+
+    if (user.role === "director") {
+      directorKpis?.classList.remove("d-none");
+    }
   }
 
-  if (typeFilter?.value) {
-    filtered = filtered.filter((s) => s.type === typeFilter.value);
+  /* EXPORT (with current filters) */
+
+  exportBtn?.addEventListener("click", async () => {
+    try {
+      const params = new URLSearchParams({
+        type: typeFilter?.value || "",
+      });
+
+      if (user.role === "director" && branchFilter?.value) {
+        params.set("branch", branchFilter.value);
+      }
+
+      const res = await fetch(`${API}/export?${params}`, {
+        headers: authHeaders(),
+      });
+
+      if (res.status === 401 || res.status === 403) return redirectToLogin();
+      if (!res.ok) throw new Error("Export failed");
+
+      const blob = await res.blob();
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `karibu-sales-${new Date().toISOString().split("T")[0]}.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (err) {
+      console.error("EXPORT ERROR:", err);
+      alert("Failed to export sales data. Please try again.");
+    }
+  });
+
+  /* FILTER EVENTS*/
+  branchFilter?.addEventListener("change", () => {
+    currentPage = 1;
+    fetchSales();
+  });
+  typeFilter?.addEventListener("change", () => {
+    currentPage = 1;
+    fetchSales();
+  });
+  pageSizeSelect?.addEventListener("change", () => {
+    pageSize = Number(pageSizeSelect.value);
+    currentPage = 1;
+    fetchSales();
+  });
+
+  /* INIT */
+  fetchSales();
+});
+
+/* MULTI TAB SESSION SYNC */
+window.addEventListener("storage", (e) => {
+  if (e.key === "kglSession" && !e.newValue) {
+    window.location.href = "/frontend/login.html";
   }
-
-  render(filtered);
-}
-
-branchFilter?.addEventListener("change", applyFilters);
-typeFilter?.addEventListener("change", applyFilters);
-
-/* INIT */
-render(allSales);
-
-/* HELPERS */
-function capitalize(v = "") {
-  return v ? v.charAt(0).toUpperCase() + v.slice(1) : "-";
-}
-
-function formatCurrency(v = 0) {
-  return new Intl.NumberFormat("en-UG", {
-    style: "currency",
-    currency: "UGX",
-    minimumFractionDigits: 0,
-  }).format(v);
-}
-
-function setText(id, value) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = value;
-}
-
-function showEmpty(title, message) {
-  emptyState.classList.remove("d-none");
-  emptyState.innerHTML = `
-    <h5 class="mb-2">${title}</h5>
-    <p class="text-muted mb-0">${message}</p>
-  `;
-}
+});
