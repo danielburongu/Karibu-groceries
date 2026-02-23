@@ -79,9 +79,7 @@ const procurementSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-/* =========================================================
-   MODERN PRE-SAVE HOOK (NO next)
-========================================================= */
+/* PRE-SAVE HOOK */
 procurementSchema.pre("save", async function () {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -91,9 +89,7 @@ procurementSchema.pre("save", async function () {
   }
 });
 
-/* =========================================================
-   VIRTUAL: Cost Per KG
-========================================================= */
+/* VIRTUAL: Cost Per KG */
 procurementSchema.virtual("costPerKg").get(function () {
   return this.tonnage > 0 ? this.cost / this.tonnage : 0;
 });
